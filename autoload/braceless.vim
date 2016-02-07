@@ -184,7 +184,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     if a:keymode ==# 'v'
       normal! gV
     else
-      cursor(c_pos[0], c_pos[1])
+      call cursor(c_pos[0], c_pos[1])
     endif
     return
   endif
