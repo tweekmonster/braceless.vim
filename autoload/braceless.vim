@@ -4,10 +4,11 @@
 " this work.
 let s:pattern_python = '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:'
 
-let s:pattern_coffee = '\%(\zs\%(do\|if\|for\|try\|else\|when\|with\|catch\|class\|while\|switch\|finally\).\+\)\|'
+let s:pattern_coffee = '\%('
+                      \.'\%(\zs\%(do\|if\|for\|try\|else\|when\|with\|catch\|class\|while\|switch\|finally\).*\)\|'
                       \.'\S\&.\+\%(\zs='
-                      \.'\|=\s*\zs\%((.*)\)\{,1}\s*[-=]>'
-                      \.'\)\s*\_$'
+                      \.'\|\zs\%((.*)\)\{,1}\s*[-=]>'
+                      \.'\)\)\s*\_$'
 
 " Gets the byte index of a buffer position
 function! s:pos2byte(pos)
@@ -111,7 +112,9 @@ function! s:build_pattern(line, base, motion, selected)
     let pat = '^'.i_c.'\{-,'.i_n.'}'
   else
     " Reset
-    let pat = '^\s*'
+    echomsg "Reset"
+    let [i_c, i_n] = s:get_indent(a:line, 0)
+    let pat = '^'.i_c.'\{-,'.i_n.'}'
   endif
 
   if a:base !~ '\\zs'
@@ -158,7 +161,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     let has_selection = s:is_selected()
   endif
 
-  let c_pos = getpos('.')[1:2]
+  let saved_view = winsaveview()
   let c_line = s:best_indent(line('.'))
   if c_line == 0
     return 0
@@ -181,9 +184,9 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     if a:keymode ==# 'v'
       normal! gV
     else
-      call cursor(c_pos[0], c_pos[1])
+      call winrestview(saved_view)
     endif
-    return
+    return [c_line, c_line]
   endif
 
   " Finally begin the block search
@@ -194,7 +197,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   let pat = '^'.i_c.'\{,'.i_n.'}'.a:stop_pattern
   echomsg 'Stop Pattern:' pat
 
-  let startline = line('.') + 1
+  let startline = s:nextnonempty(tail[0] + 1)
   let lastline = s:get_block_end(startline, pat)
 
   if a:motion ==# 'i'
@@ -206,13 +209,17 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     endif
   endif
 
-  if a:keymode == 'v' || a:op != ''
+  if a:select == 1 && (a:keymode == 'v' || a:op != '')
     exec 'normal!' a:vmode
   endif
 
   if lastline < startline
-    call cursor(tail[0], tail[1])
-    return
+    if a:select == 1
+      call cursor(tail[0], tail[1])
+    else
+      call winrestview(saved_view)
+    endif
+    return [lastline, lastline]
   endif
 
   let end = col([lastline, '$'])
@@ -221,10 +228,14 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   if a:select == 1
     call cursor(lastline, end - 1)
   else
-    call cursor(c_pos[0], c_pos[1])
+    call winrestview(saved_view)
   endif
 
-  return [head, tail, lastline]
+  if a:motion ==# 'a'
+    let startline = head[0]
+  endif
+
+  return [startline, lastline]
 endfunction
 
 
@@ -234,6 +245,57 @@ function! s:get_pattern()
   let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, '\S.*'))
   let stop_pattern = get(g:, 'braceless#stop#'.&ft, get(s:, 'pattern_stop_'.&ft, '\S'))
   return [pattern, stop_pattern]
+endfunction
+
+
+" Highlight indent block
+function! braceless#highlight(ignore_prev)
+  let l = line('.')
+  let last_line = get(b:, 'braceless_last_line', 0)
+
+  if !a:ignore_prev && last_line == l
+    echomsg 'No indent change'
+    return
+  endif
+
+  let b:braceless_last_line = l
+
+  let [pattern, stop_pattern] = s:get_pattern()
+  if empty(pattern)
+    return
+  endif
+
+  let il = braceless#select_block(pattern, stop_pattern, 'a', 'n', '', '', 0)
+  if type(il) != 3
+    return
+  endif
+
+  let pl = s:prevnonempty(il[0])
+  let nl = s:nextnonempty(il[0])
+  if indent(nl) < indent(pl)
+    let il[0] = pl
+  else
+    let il[0] = nl
+  endif
+
+  if !a:ignore_prev
+    let last_range = get(b:, 'braceless_range', [0, 0])
+    if il[0] == last_range[0] && il[1] == last_range[1]
+      return
+    endif
+  endif
+
+  let b:braceless_range = il
+
+  let [i_c, i_n] = s:get_indent(il[0], 0)
+  silent! syntax clear BracelessIndent
+  " Note, 2 is the right side of the column.  So +2 to the indent.
+  let match_id = get(b:, 'braceless_match', -1)
+  if match_id != -1
+    call matchdelete(match_id)
+  endif
+  let matchpattern = '\%>'.(il[0]-1).'l'.i_c.'\%'.(i_n + 2).'v\%<'.(il[1]+1).'l'
+  let b:braceless_match = matchadd('BracelessIndent', matchpattern, 99)
 endfunction
 
 
