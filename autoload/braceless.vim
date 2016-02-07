@@ -72,12 +72,12 @@ endfunction
 " looks for a lower indent level.
 function! s:get_block_end(start, pattern)
   let end = line('$')
-  let start = min([end, a:start + 1])
-  let lastline = start
+  let start = min([end, a:start])
+  let lastline = end
 
   while start > 0 && start <= end
     if getline(start) =~ a:pattern
-      let lastline = prevnonblank(start - 1)
+      let lastline = s:prevnonempty(start - 1)
       break
     endif
     let start = s:nextnonempty(start + 1)
@@ -190,19 +190,31 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   let head = searchpos(pat, 'cbW')
   " echomsg 'Matched Line:' getline(head[0])
 
+  let [i_c, i_n] = s:get_indent(head[0], 0)
+  let pat = '^'.i_c.'\{,'.i_n.'}'.a:stop_pattern
+  " echomsg 'Stop Pattern:' pat
+
+  let startline = line('.') + 1
+  let lastline = s:get_block_end(startline, pat)
+
   if a:motion ==# 'i'
-    let [i_c, i_n] = s:get_indent(head[0], 1)
-    call cursor(tail[0] + 1, i_n + 1)
+    if lastline < startline
+      call cursor(tail[0], 0)
+    else
+      let [i_c, i_n] = s:get_indent(head[0], 1)
+      call cursor(tail[0] + 1, i_n + 1)
+    endif
   endif
 
   if a:keymode == 'v' || a:op != ''
     exec 'normal!' a:vmode
   endif
 
-  let [i_c, i_n] = s:get_indent(head[0], 0)
-  let pat = '^'.i_c.'\{,'.i_n.'}'.a:stop_pattern
-  " echomsg 'Stop Pattern:' pat
-  let lastline = s:get_block_end(line('.'), pat)
+  if lastline < startline
+    call cursor(tail[0], tail[1])
+    return
+  endif
+
   let end = col([lastline, '$'])
   " echomsg 'Last Line' lastline
 
@@ -219,7 +231,7 @@ endfunction
 " Gets a pattern.  If g:braceless#start#<filetype> does not exist, fallback to
 " a built in one, and if that doesn't exist, return an empty string.
 function! s:get_pattern()
-  let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, ''))
+  let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, '\S.*'))
   let stop_pattern = get(g:, 'braceless#stop#'.&ft, get(s:, 'pattern_stop_'.&ft, '\S'))
   return [pattern, stop_pattern]
 endfunction
