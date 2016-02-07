@@ -3,14 +3,11 @@
 " the stop pattern, but I don't want to break the magic spell that's making
 " this work.
 let s:pattern_python = '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:'
-let s:pattern_stop_python = '\S'
 
 let s:pattern_coffee = '\%(\zs\%(do\|if\|for\|try\|else\|when\|with\|catch\|class\|while\|switch\|finally\).\+\)\|'
                       \.'\S\&.\+\%(\zs='
                       \.'\|=\s*\zs\%((.*)\)\{,1}\s*[-=]>'
                       \.'\)\s*\_$'
-let s:pattern_stop_coffee = '\S'
-
 
 " Gets the byte index of a buffer position
 function! s:pos2byte(pos)
