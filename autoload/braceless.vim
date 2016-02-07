@@ -219,12 +219,46 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
 endfunction
 
 
-" Kinda like black ops, but more exciting.
-function! braceless#block_op(motion, keymode, vmode, op)
+" Gets a pattern.  If g:braceless#start#<filetype> does not exist, fallback to
+" a built in one, and if that doesn't exist, return an empty string.
+function! s:get_pattern()
   let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, ''))
   let stop_pattern = get(g:, 'braceless#stop#'.&ft, get(s:, 'pattern_stop_'.&ft, '\S'))
+  return [pattern, stop_pattern]
+endfunction
+
+
+" Kinda like black ops, but more exciting.
+function! braceless#block_op(motion, keymode, vmode, op)
+  let [pattern, stop_pattern] = s:get_pattern()
   if empty(pattern)
     return
   endif
   call braceless#select_block(pattern, stop_pattern, a:motion, a:keymode, a:vmode, a:op, 1)
+endfunction
+
+
+" Jump to an *actual* meaningful block in Python!
+function! braceless#block_jump(direction)
+  let [pattern, stop_pattern] = s:get_pattern()
+  if empty(pattern)
+    return
+  endif
+
+  let flags = ''
+  if a:direction == -1
+    let flags = 'b'
+  endif
+
+  let pat = '^\s*'
+  if pattern !~ '\\zs'
+    let pat .= '\zs'
+  endif
+  let pat .= pattern
+
+  let i = v:count1
+  while i > 0
+    call searchpos(pat, flags.'e')
+    let i -= 1
+  endwhile
 endfunction
