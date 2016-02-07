@@ -248,10 +248,14 @@ endfunction
 
 
 " Jump to an *actual* meaningful block in Python!
-function! braceless#block_jump(direction)
+function! braceless#block_jump(direction, vmode, count)
   let [pattern, stop_pattern] = s:get_pattern()
   if empty(pattern)
     return
+  endif
+
+  if a:vmode != 'n'
+    normal! gv
   endif
 
   let flags = ''
@@ -265,7 +269,7 @@ function! braceless#block_jump(direction)
   endif
   let pat .= pattern
 
-  let i = v:count1
+  let i = a:count
   while i > 0
     call searchpos(pat, flags.'e')
     let i -= 1
