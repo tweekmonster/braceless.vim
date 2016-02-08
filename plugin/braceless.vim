@@ -52,7 +52,7 @@ function! s:init()
   execute 'vmap ]'.jump_next_key.' <Plug>(braceless-jump-next-v)'
 
 
-  highlight default link BracelessIndent MatchParen
+  highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
 
   augroup braceless
     autocmd!
