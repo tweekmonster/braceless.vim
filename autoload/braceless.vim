@@ -391,7 +391,7 @@ function! braceless#foldexpr(line)
     return 0
   endif
 
-  let inner = get(g:, 'braceless_fold_inner', 0)
+  let inner = get(b:, 'braceless_fold_inner', get(g:, 'braceless_fold_inner', 0))
   let i_n = s:get_indent_level(il[0], 1)
 
   if a:line == il[0]
