@@ -341,5 +341,26 @@ function! braceless#block_jump(direction, vmode, count)
   endwhile
 endfunction
 
+
+" EasyMotion for indent blocks
+function! braceless#easymotion(vmode, direction)
+  let [pattern, stop_pattern] = s:get_pattern()
+  if empty(pattern)
+    return
+  endif
+
+  let pat = '^\s*'
+  if pattern !~ '\\zs'
+    let pat .= '\zs'
+  endif
+  let pat .= pattern
+
+  if pattern !~ '\\ze'
+    let pat .= '\ze'
+  endif
+
+  call EasyMotion#User(pat, a:vmode, a:direction, 1)
+endfunction
+
 let &cpo = s:cpo_save
 unlet s:cpo_save

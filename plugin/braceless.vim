@@ -8,6 +8,20 @@ set cpo&vim
 let g:loaded_braceless = 1
 
 
+function! s:setup_easymotion()
+  let next_key = get(g:, 'braceless_easymotion_next_key', ']')
+  let prev_key = get(g:, 'braceless_easymotion_prev_key', '[')
+  let block_key = get(g:, 'braceless_block_key', ':')
+
+  silent execute 'map <silent> <Plug>(easymotion-prefix)'.next_key.' :<C-u>call braceless#easymotion(0, 0)<cr>'
+  silent execute 'map <silent> <Plug>(easymotion-prefix)'.prev_key.' :<C-u>call braceless#easymotion(0, 1)<cr>'
+  silent execute 'map <silent> <Plug>(easymotion-prefix)'.block_key.' :<C-u>call braceless#easymotion(0, 2)<cr>'
+  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.next_key.' :<C-u>call braceless#easymotion(1, 0)<cr>'
+  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.prev_key.' :<C-u>call braceless#easymotion(1, 1)<cr>'
+  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.block_key.' :<C-u>call braceless#easymotion(1, 2)<cr>'
+endfunction
+
+
 function! s:init()
   let block_key = get(g:, 'braceless_block_key', ':')
   let jump_prev_key = get(g:, 'braceless_jump_prev_key', '[')
@@ -48,6 +62,10 @@ function! s:init()
       autocmd FileType python,coffee
         \ execute 'autocmd CursorMovedI <buffer> '.s:callprefix.' call braceless#highlight(1)'
     augroup END
+  endif
+
+  if get(g:, 'braceless_enable_easymotion', 0)
+    call s:setup_easymotion()
   endif
 endfunction
 
