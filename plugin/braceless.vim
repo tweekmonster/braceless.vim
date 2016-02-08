@@ -2,6 +2,7 @@ if exists('g:loaded_braceless') && g:loaded_braceless
   finish
 endif
 
+" Support indent and folding
 let s:cpo_save = &cpo
 set cpo&vim
 

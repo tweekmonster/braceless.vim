@@ -73,6 +73,19 @@ function! s:is_selected()
 endfunction
 
 
+function! s:get_indent_level(expr, delta)
+  let i_n = indent(a:expr)
+  let d = 1
+  if !&expandtab
+    let i_n = (i_n / &ts) + a:delta
+  else
+    let i_n += &sw * a:delta
+    let d = &sw
+  endif
+  return max([0, i_n]) / d
+endfunction
+
+
 " Gets the indent level of a line and modifies it with a indent level delta.
 function! s:get_indent(expr, delta)
   let i_c = ' '
@@ -316,23 +329,17 @@ function! s:highlight_line(line1, line2)
 endfunction
 
 
-" Highlight indent block
-function! braceless#highlight(ignore_prev)
-  if !get(b:, 'braceless_enable_highlight', get(g:, 'braceless_enable_highlight', 0))
-    return
-  endif
-
-  let l = line('.')
-  let last_line = get(b:, 'braceless_last_line', 0)
-
-  let b:braceless_last_line = l
-
+function! braceless#get_block_lines(line)
   let [pattern, stop_pattern] = s:get_pattern()
   if empty(pattern)
     return
   endif
 
+  let saved = winsaveview()
+  call cursor(a:line, col([a:line, 1]))
+  call searchpos('^\s*\zs\S', 'W')
   let il = braceless#select_block(pattern, stop_pattern, 'a', 'n', '', '', 0)
+  call winrestview(saved)
   if type(il) != 3
     return
   endif
@@ -345,6 +352,25 @@ function! braceless#highlight(ignore_prev)
     let il[0] = nl
   endif
 
+  return il
+endfunction
+
+
+" Highlight indent block
+function! braceless#highlight(ignore_prev)
+  if !get(b:, 'braceless_enable_highlight', get(g:, 'braceless_enable_highlight', 0))
+    return
+  endif
+
+  let l = line('.')
+  let last_line = get(b:, 'braceless_last_line', 0)
+
+  let b:braceless_last_line = l
+  silent let il = braceless#get_block_lines(line('.'))
+  if type(il) != 3
+    return
+  endif
+
   if !a:ignore_prev
     let last_range = get(b:, 'braceless_range', [0, 0])
     if il[0] == last_range[0] && il[1] == last_range[1]
@@ -355,6 +381,33 @@ function! braceless#highlight(ignore_prev)
   let b:braceless_range = il
 
   call s:highlight_line(il[0], il[1])
+endfunction
+
+
+" Folding
+function! braceless#foldexpr(line)
+  silent let il = braceless#get_block_lines(a:line)
+  if type(il) != 3
+    return 0
+  endif
+
+  let inner = get(g:, 'braceless_fold_inner', 0)
+  let i_n = s:get_indent_level(il[0], 1)
+
+  if a:line == il[0]
+    return inner ? i_n - 1 : '>'.i_n
+  elseif inner && a:line == il[0]+1
+    return '>'.i_n
+  elseif a:line == il[1]
+    return '<'.i_n
+  endif
+  return i_n
+endfunction
+
+
+function! braceless#enable_folding()
+  setlocal foldmethod=expr
+  setlocal foldexpr=braceless#foldexpr(v:lnum)
 endfunction
 
 
