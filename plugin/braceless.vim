@@ -1,6 +1,10 @@
 if exists('g:loaded_braceless') && g:loaded_braceless
   finish
 endif
+
+let s:cpo_save = &cpo
+set cpo&vim
+
 let g:loaded_braceless = 1
 
 
@@ -48,3 +52,5 @@ function! s:init()
 endfunction
 
 call s:init()
+let &cpo = s:cpo_save
+unlet s:cpo_save

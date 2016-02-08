@@ -2,6 +2,9 @@
 " match. They just need to stop at lower-indented lines.  I could hard-code
 " the stop pattern, but I don't want to break the magic spell that's making
 " this work.
+let s:cpo_save = &cpo
+set cpo&vim
+
 let s:pattern_python = '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:'
 
 let s:pattern_coffee = '\%('
@@ -337,3 +340,6 @@ function! braceless#block_jump(direction, vmode, count)
     let i -= 1
   endwhile
 endfunction
+
+let &cpo = s:cpo_save
+unlet s:cpo_save
