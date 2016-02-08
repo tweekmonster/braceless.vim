@@ -271,11 +271,6 @@ function! braceless#highlight(ignore_prev)
   let l = line('.')
   let last_line = get(b:, 'braceless_last_line', 0)
 
-  if !a:ignore_prev && last_line == l
-    echomsg 'No indent change'
-    return
-  endif
-
   let b:braceless_last_line = l
 
   let [pattern, stop_pattern] = s:get_pattern()
