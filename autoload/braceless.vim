@@ -8,10 +8,25 @@ set cpo&vim
 let s:pattern_python = '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:'
 
 let s:pattern_coffee = '\%('
-                      \.'\%(\zs\%(do\|if\|for\|try\|else\|when\|with\|catch\|class\|while\|switch\|finally\).*\)\|'
-                      \.'\S\&.\+\%(\zs='
-                      \.'\|\zs\%((.*)\)\{,1}\s*[-=]>'
-                      \.'\)\)\s*\_$'
+                      \  .'\%(\zs\%(do\|if\|for\|try\|else\|when\|with\|catch\|class\|while\|switch\|finally\).*\)\|'
+                      \  .'\S\&.\+\%('
+                      \    .'\zs(.*)\s*[-=]>'
+                      \    .'\|\((.*)\s*\)\@<!\zs[-=]>'
+                      \    .'\|\zs=\_$'
+                      \.'\)\).*'
+
+" Coffee Script is tricky as hell to match.  Explanation of above:
+" - Start an atom that groups everything, so that searchpos() will match the
+"   entire line.
+"   - Match block keywords
+"   - Start an atom that matches symbols that start a block
+"     - Match a splat with arguments to position at the beginning of the
+"     arguments
+"     - Match a splat without arguments.  Explicitly don't match splat with
+"     arguments, since it would technically match.
+"     - An equal sign at the end of a line
+" - Close the atoms
+
 
 " Gets the byte index of a buffer position
 function! s:pos2byte(pos)
