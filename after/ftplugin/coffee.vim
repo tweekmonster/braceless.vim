@@ -4,7 +4,7 @@ let b:did_braceless_ftplugin = 1
 let s:cpo_save = &cpo
 set cpo&vim
 
-call braceless#enable_folding()
+" Stub
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
