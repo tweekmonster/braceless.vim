@@ -54,15 +54,11 @@ function! s:init()
 
   highlight default link BracelessIndent MatchParen
 
-  if get(g:, 'braceless_enable_highlight', 0)
-    augroup braceless
-      autocmd!
-      autocmd FileType python,coffee
-        \ execute 'autocmd CursorMoved <buffer> '.s:callprefix.' call braceless#highlight(0)'
-      autocmd FileType python,coffee
-        \ execute 'autocmd CursorMovedI <buffer> '.s:callprefix.' call braceless#highlight(1)'
-    augroup END
-  endif
+  augroup braceless
+    autocmd!
+    execute 'autocmd CursorMoved * '.s:callprefix.' call braceless#highlight(0)'
+    execute 'autocmd CursorMovedI * '.s:callprefix.' call braceless#highlight(1)'
+  augroup END
 
   if get(g:, 'braceless_enable_easymotion', 0)
     call s:setup_easymotion()

@@ -266,8 +266,27 @@ function! s:get_pattern()
 endfunction
 
 
+" Enable/disable block highlighting on a per-buffer basis
+function! braceless#enable(b)
+  let b:braceless_enable_highlight = a:b
+  if a:b
+    silent call braceless#highlight(1)
+  else
+    let match_id = get(b:, 'braceless_match', -1)
+    if match_id != -1
+      call matchdelete(match_id)
+      unlet b:braceless_match
+    endif
+  endif
+endfunction
+
+
 " Highlight indent block
 function! braceless#highlight(ignore_prev)
+  if !get(b:, 'braceless_enable_highlight', get(g:, 'braceless_enable_highlight', 0))
+    return
+  endif
+
   let l = line('.')
   let last_line = get(b:, 'braceless_last_line', 0)
 
