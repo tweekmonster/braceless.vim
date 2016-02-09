@@ -35,33 +35,6 @@ function! s:pos2byte(pos)
 endfunction
 
 
-" Similar to prevnonblank() but tests non-empty whitespace lines
-function! s:prevnonempty(line)
-  let c_line = a:line
-  while c_line > 0
-    if getline(c_line) !~ '^\s*$'
-      return c_line
-    endif
-    let c_line -= 1
-  endwhile
-  return 0
-endfunction
-
-
-" Similar to nextnonblank() but tests non-empty whitespace lines
-function! s:nextnonempty(line)
-  let c_line = a:line
-  let end = line('$')
-  while c_line <= end
-    if getline(c_line) !~ '^\s*$'
-      return c_line
-    endif
-    let c_line += 1
-  endwhile
-  return 0
-endfunction
-
-
 " Tests if there is selected text
 function! s:is_selected()
   let pos = s:pos2byte('.')
@@ -109,10 +82,10 @@ function! s:get_block_end(start, pattern)
 
   while start > 0 && start <= end
     if getline(start) =~ a:pattern
-      let lastline = s:prevnonempty(start - 1)
+      let lastline = prevnonblank(start - 1)
       break
     endif
-    let start = s:nextnonempty(start + 1)
+    let start = nextnonblank(start + 1)
   endwhile
 
   return lastline
@@ -159,8 +132,8 @@ endfunction
 
 " Get the line with the nicest looking indent level
 function! s:best_indent(line)
-  let p_line = s:prevnonempty(a:line)
-  let n_line = s:nextnonempty(a:line)
+  let p_line = prevnonblank(a:line)
+  let n_line = nextnonblank(a:line)
 
   " Make sure there's at least something to find
   if p_line == 0
@@ -228,7 +201,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   let pat = '^'.i_c.'\{,'.i_n.'}'.a:stop_pattern
   echomsg 'Stop Pattern:' pat
 
-  let startline = s:nextnonempty(tail[0] + 1)
+  let startline = nextnonblank(tail[0] + 1)
   let lastline = s:get_block_end(startline, pat)
 
   if a:motion ==# 'i'
@@ -380,8 +353,8 @@ function! braceless#get_block_lines(line)
     return
   endif
 
-  let pl = s:prevnonempty(il[0])
-  let nl = s:nextnonempty(il[0])
+  let pl = prevnonblank(il[0])
+  let nl = nextnonblank(il[0])
   if indent(nl) < indent(pl)
     let il[0] = pl
   else
