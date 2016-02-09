@@ -46,33 +46,6 @@ function! s:is_selected()
 endfunction
 
 
-function! s:get_indent_level(expr, delta)
-  let i_n = indent(a:expr)
-  let d = 1
-  if !&expandtab
-    let i_n = (i_n / &ts) + a:delta
-  else
-    let i_n += &sw * a:delta
-    let d = &sw
-  endif
-  return max([0, i_n]) / d
-endfunction
-
-
-" Gets the indent level of a line and modifies it with a indent level delta.
-function! s:get_indent(expr, delta)
-  let i_c = ' '
-  let i_n = indent(a:expr)
-  if !&expandtab
-    let i_c = '\t'
-    let i_n = (i_n / &ts) + a:delta
-  else
-    let i_n += &sw * a:delta
-  endif
-  return [i_c, max([0, i_n])]
-endfunction
-
-
 " Get the indented block by finding the first line that matches a pattern that
 " looks for a lower indent level.
 function! s:get_block_end(start, pattern)
@@ -109,7 +82,7 @@ function! s:build_pattern(line, base, motion, selected)
       " Moving outward, don't include current line
       let flag = 'b'
     endif
-    let [i_c, i_n] = s:get_indent(line, i_d - 1)
+    let [i_c, i_n] = braceless#indent#space(line, i_d - 1)
     let pat = '^'.i_c.'\{,'.i_n.'}'
   else
     let i_d = 0
@@ -136,7 +109,7 @@ function! s:build_pattern(line, base, motion, selected)
       endif
     endif
 
-    let [i_c, i_n] = s:get_indent(i_l, i_d)
+    let [i_c, i_n] = braceless#indent#space(i_l, i_d)
     let pat = '^'.i_c.'\{-,'.i_n.'}'
   endif
 
@@ -216,7 +189,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   let head = searchpos(pat, 'cbW')
   " echomsg 'Matched Line:' getline(head[0])
 
-  let [i_c, i_n] = s:get_indent(head[0], 0)
+  let [i_c, i_n] = braceless#indent#space(head[0], 0)
   let pat = '^'.i_c.'\{,'.i_n.'}'.a:stop_pattern
   " echomsg 'Stop Pattern:' pat
 
@@ -227,7 +200,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     if lastline < startline
       call cursor(tail[0], 0)
     else
-      let [i_c, i_n] = s:get_indent(head[0], 1)
+      let [i_c, i_n] = braceless#indent#space(head[0], 1)
       call cursor(tail[0] + 1, i_n + 1)
     endif
   endif
@@ -301,7 +274,7 @@ function! s:highlight_line(line1, line2)
     return
   endif
 
-  let [i_c, i_n] = s:get_indent(a:line1, 0)
+  let [i_c, i_n] = braceless#indent#space(a:line1, 0)
 
   if use_cc > 0
     let &cc = s:origcc.','.(i_n+1)
@@ -419,7 +392,7 @@ function! braceless#foldexpr(line)
   endif
 
   let inner = get(b:, 'braceless_fold_inner', get(g:, 'braceless_fold_inner', 0))
-  let i_n = s:get_indent_level(il[2], 1)
+  let i_n = braceless#indent#level(il[2], 1)
 
   if a:line != il[0] && a:line == il[3]
     return -1
@@ -437,11 +410,6 @@ endfunction
 function! braceless#enable_folding()
   setlocal foldmethod=expr
   setlocal foldexpr=braceless#foldexpr(v:lnum)
-endfunction
-
-
-" Indent
-function! braceless#indentexpr(line)
 endfunction
 
 
