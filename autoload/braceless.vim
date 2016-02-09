@@ -345,8 +345,7 @@ function! braceless#get_block_lines(line)
   endif
 
   let saved = winsaveview()
-  call cursor(a:line, col([a:line, 1]))
-  call searchpos('^\s*\zs\S', 'W')
+  call cursor(a:line, col([a:line, '$']))
   let il = braceless#select_block(pattern, stop_pattern, 'a', 'n', '', '', 0)
   call winrestview(saved)
   if type(il) != 3
