@@ -122,13 +122,18 @@ function! s:build_pattern(line, base, motion, selected)
       " the curswant
       let pos = getpos('.')
       call cursor(i_l, col([i_l, '$']))
-      let head = searchpos(pat, 'cbeW')
+      let pos2 = getpos('.')
+      let head = searchpos(pat, 'cbW')
       let tail = searchpos(pat, 'ceW')
-      if tail[0] == pos[1] && tail[1] == pos[2]
+      call setpos('.', pos)
+      if tail[0] == pos2[1] || head[0] == pos2[1]
         let i_l = head[0]
+        let i_d = 0
+        " Move to the head line
+        call setpos('.', pos2)
+      else
         let i_d = -1
       endif
-      call setpos('.', pos)
     endif
 
     let [i_c, i_n] = s:get_indent(i_l, i_d)
@@ -204,7 +209,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     else
       call winrestview(saved_view)
     endif
-    return [c_line, c_line]
+    return [c_line, c_line, head[0], tail[0]]
   endif
 
   " Finally begin the block search
@@ -237,7 +242,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     else
       call winrestview(saved_view)
     endif
-    return [lastline, lastline]
+    return [lastline, lastline, head[0], tail[0]]
   endif
 
   let end = col([lastline, '$'])
@@ -253,7 +258,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     let startline = head[0]
   endif
 
-  return [startline, lastline]
+  return [startline, lastline, head[0], tail[0]]
 endfunction
 
 
@@ -388,7 +393,7 @@ function! braceless#highlight(ignore_prev)
   let last_line = get(b:, 'braceless_last_line', 0)
 
   let b:braceless_last_line = l
-  silent let il = braceless#get_block_lines(line('.'))
+  let il = braceless#get_block_lines(line('.'))
   if type(il) != 3
     return
   endif
@@ -414,9 +419,11 @@ function! braceless#foldexpr(line)
   endif
 
   let inner = get(b:, 'braceless_fold_inner', get(g:, 'braceless_fold_inner', 0))
-  let i_n = s:get_indent_level(il[0], 1)
+  let i_n = s:get_indent_level(il[2], 1)
 
-  if a:line == il[0]
+  if a:line != il[0] && a:line == il[3]
+    return -1
+  elseif a:line == il[0]
     return inner ? i_n - 1 : '>'.i_n
   elseif inner && a:line == il[0]+1
     return '>'.i_n
