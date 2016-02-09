@@ -54,7 +54,7 @@ function! s:get_block_end(start, pattern)
   let lastline = end
 
   while start > 0 && start <= end
-    if getline(start) =~ a:pattern
+    if getline(start) =~ a:pattern && !braceless#is_string(start)
       let lastline = prevnonblank(start - 1)
       break
     endif
@@ -90,6 +90,15 @@ function! s:build_pattern(line, base, motion, selected)
     if text =~ '^\s*$'
       let i_d = -1
     else
+      " motions can get screwed up if initiated from within a docstring
+      " that's under indented.
+      if braceless#is_string(a:line)
+        let docstring = braceless#docstring(a:line)
+        if docstring[0] != 0
+          let i_l = docstring[0]
+        endif
+      endif
+
       " Try matching a multi-line block start
       " The window state should be saved before this, so no need to restore
       " the curswant
@@ -149,6 +158,50 @@ function! s:best_indent(line)
   return a:line
 endfunction
 
+
+let s:docstr = '\%("""\|''''''\)'
+
+function! braceless#is_string(line, ...)
+  return synIDattr(synID(a:line, a:0 ? a:1 : 1, 1), 'name') =~ '\(Comment\|Todo\|String\|Heredoc\)$'
+endfunction
+
+
+" Returns the start and end lines for docstrings
+" Couldn't get this to work reliably using searches.
+function! braceless#docstring(line, ...)
+  let l = prevnonblank(a:line)
+  let doc_head = 0
+  let doc_tail = 0
+
+  let bounds = a:0 ? a:1 : [1, line('$')]
+
+  while l >= bounds[0]
+    if getline(l) =~ s:docstr && braceless#is_string(nextnonblank(l + 1))
+      let doc_head = l
+      break
+    elseif !braceless#is_string(l)
+      break
+    endif
+    let l = prevnonblank(l - 1)
+  endwhile
+
+  if doc_head == 0
+    return [0, 0]
+  endif
+
+  let l = nextnonblank(a:line)
+  while l <= bounds[1]
+    if getline(l) =~ s:docstr && braceless#is_string(prevnonblank(l - 1))
+      let doc_tail = l
+      break
+    elseif !braceless#is_string(l)
+      break
+    endif
+    let l = nextnonblank(l + 1)
+  endwhile
+
+  return [doc_head, doc_tail]
+endfunction
 
 " Select an indent block using ~magic~
 function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, op, select)
@@ -237,7 +290,7 @@ endfunction
 
 " Gets a pattern.  If g:braceless#start#<filetype> does not exist, fallback to
 " a built in one, and if that doesn't exist, return an empty string.
-function! s:get_pattern()
+function! braceless#get_pattern()
   let pvar = 'pattern_pair_'.&ft
   if !exists('s:'.pvar)
     let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, '\S.*'))
@@ -331,7 +384,7 @@ endfunction
 
 
 function! braceless#get_block_lines(line)
-  let [pattern, stop_pattern] = s:get_pattern()
+  let [pattern, stop_pattern] = braceless#get_pattern()
   if empty(pattern)
     return
   endif
@@ -413,9 +466,10 @@ function! braceless#enable_folding()
 endfunction
 
 
+
 " Kinda like black ops, but more exciting.
 function! braceless#block_op(motion, keymode, vmode, op)
-  let [pattern, stop_pattern] = s:get_pattern()
+  let [pattern, stop_pattern] = braceless#get_pattern()
   if empty(pattern)
     return
   endif
@@ -425,7 +479,7 @@ endfunction
 
 " Jump to an *actual* meaningful block in Python!
 function! braceless#block_jump(direction, vmode, count)
-  let [pattern, stop_pattern] = s:get_pattern()
+  let [pattern, stop_pattern] = braceless#get_pattern()
   if empty(pattern)
     return
   endif
@@ -455,7 +509,7 @@ endfunction
 
 " EasyMotion for indent blocks
 function! braceless#easymotion(vmode, direction)
-  let [pattern, stop_pattern] = s:get_pattern()
+  let [pattern, stop_pattern] = braceless#get_pattern()
   if empty(pattern)
     return
   endif
