@@ -285,14 +285,13 @@ function! braceless#enable(b)
   if a:b
     silent call braceless#highlight(1)
   else
-    call s:highlight_line(0, 0)
+    call s:mark_column(0, 0, 0)
   endif
 endfunction
 
 
 function! s:highlight_line(line1, line2)
   let use_cc = get(g:, 'braceless_highlight_use_cc', 0)
-  let match_id = get(b:, 'braceless_match', -1)
   if !exists('s:origcc')
     let s:origcc = &cc
   endif
@@ -302,10 +301,7 @@ function! s:highlight_line(line1, line2)
       let &cc = s:origcc
     endif
 
-    if match_id != -1
-      call matchdelete(match_id)
-    endif
-
+    call s:mark_column(0, 0, 0)
     return
   endif
 
@@ -318,14 +314,50 @@ function! s:highlight_line(line1, line2)
     endif
   endif
 
-  silent! syntax clear BracelessIndent
-  if match_id != -1
-    silent! call matchdelete(match_id)
+  call s:mark_column(a:line1, a:line2, i_n)
+endfunction
+
+
+function! s:mark_column(line1, line2, column)
+  if exists('b:braceless_column')
+    for id in b:braceless_column
+      silent! call matchdelete(id)
+    endfor
+    unlet b:braceless_column
   endif
 
-  " Note, 2 is the right side of the column.  So +2 to the indent.
-  let matchpattern = '\%>'.(a:line1-1).'l'.i_c.'\%'.(i_n + 2).'v\%<'.(a:line2+1).'l'
-  let b:braceless_match = matchadd('BracelessIndent', matchpattern, 99)
+  if a:line1 == 0
+    return
+  endif
+
+  if a:line2 - a:line1 < 1
+    return
+  endif
+
+  echomsg a:line1 '-' a:line2 '-' a:column
+
+  let matches = []
+  for i in range(a:line1 + 1, a:line2, 8)
+    let group = []
+    for j in range(0, 7)
+      let c_line = i + j
+
+      if c_line > a:line2
+        break
+      endif
+
+      if a:column == 0 && col([c_line, '$']) < 2
+        continue
+      endif
+
+      call add(group, [c_line, a:column + 1, 1])
+    endfor
+
+    let id = matchaddpos('BracelessIndent', group, 90)
+    call add(matches, id)
+  endfor
+
+  let b:braceless_column = matches
 endfunction
 
 
