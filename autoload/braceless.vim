@@ -111,13 +111,27 @@ function! s:build_pattern(line, base, motion, selected)
     endif
     let [i_c, i_n] = s:get_indent(line, i_d - 1)
     let pat = '^'.i_c.'\{,'.i_n.'}'
-  elseif text =~ '^\s*$' || text !~ pat
-    let [i_c, i_n] = s:get_indent(a:line, -1)
-    let pat = '^'.i_c.'\{-,'.i_n.'}'
   else
-    " Reset
-    " echomsg "Reset"
-    let [i_c, i_n] = s:get_indent(a:line, 0)
+    let i_d = 0
+    let i_l = a:line
+    if text =~ '^\s*$'
+      let i_d = -1
+    else
+      " Try matching a multi-line block start
+      " The window state should be saved before this, so no need to restore
+      " the curswant
+      let pos = getpos('.')
+      call cursor(i_l, col([i_l, '$']))
+      let head = searchpos(pat, 'cbeW')
+      let tail = searchpos(pat, 'ceW')
+      if tail[0] == pos[1] && tail[1] == pos[2]
+        let i_l = head[0]
+        let i_d = -1
+      endif
+      call setpos('.', pos)
+    endif
+
+    let [i_c, i_n] = s:get_indent(i_l, i_d)
     let pat = '^'.i_c.'\{-,'.i_n.'}'
   endif
 
@@ -416,6 +430,11 @@ endfunction
 function! braceless#enable_folding()
   setlocal foldmethod=expr
   setlocal foldexpr=braceless#foldexpr(v:lnum)
+endfunction
+
+
+" Indent
+function! braceless#indentexpr(line)
 endfunction
 
 
