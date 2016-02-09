@@ -273,9 +273,13 @@ endfunction
 " Gets a pattern.  If g:braceless#start#<filetype> does not exist, fallback to
 " a built in one, and if that doesn't exist, return an empty string.
 function! s:get_pattern()
-  let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, '\S.*'))
-  let stop_pattern = get(g:, 'braceless#stop#'.&ft, get(s:, 'pattern_stop_'.&ft, '\S'))
-  return [pattern, stop_pattern]
+  let pvar = 'pattern_pair_'.&ft
+  if !exists('s:'.pvar)
+    let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, '\S.*'))
+    let stop_pattern = get(g:, 'braceless#stop#'.&ft, get(s:, 'pattern_stop_'.&ft, '\S'))
+    let s:[pvar] = [pattern, stop_pattern]
+  endif
+  return get(s:, pvar)
 endfunction
 
 
