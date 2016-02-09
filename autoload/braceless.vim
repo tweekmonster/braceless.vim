@@ -240,7 +240,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     endif
   endif
 
-  if a:select == 1 && (a:keymode == 'v' || a:op != '')
+  if !empty(a:vmode) && a:select == 1 && (a:keymode == 'v' || a:op != '')
     exec 'normal!' a:vmode
   endif
 
