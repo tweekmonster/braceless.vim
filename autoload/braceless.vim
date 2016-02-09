@@ -257,7 +257,7 @@ endfunction
 
 
 " Enable/disable block highlighting on a per-buffer basis
-function! braceless#enable(b)
+function! braceless#enable_highlight(b)
   let b:braceless_enable_highlight = a:b
   if a:b
     silent call braceless#highlight(1)
