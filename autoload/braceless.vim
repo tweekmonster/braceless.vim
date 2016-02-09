@@ -41,7 +41,7 @@ function! s:is_selected()
   let m_start = s:pos2byte("'<")
   let m_end = s:pos2byte("'>")
 
-  echomsg 'Current Position:' pos 'Mark Start:' m_start 'Mark End:' m_end
+  " echomsg 'Current Position:' pos 'Mark Start:' m_start 'Mark End:' m_end
   return m_start != -1 && m_end != -1 && pos == m_start && pos != m_end
 endfunction
 
@@ -116,7 +116,7 @@ function! s:build_pattern(line, base, motion, selected)
     let pat = '^'.i_c.'\{-,'.i_n.'}'
   else
     " Reset
-    echomsg "Reset"
+    " echomsg "Reset"
     let [i_c, i_n] = s:get_indent(a:line, 0)
     let pat = '^'.i_c.'\{-,'.i_n.'}'
   endif
@@ -170,19 +170,19 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   if c_line == 0
     return 0
   endif
-  echomsg 'Start line:' c_line
+  " echomsg 'Start line:' c_line
 
-  echomsg 'Has Selection:' has_selection
+  " echomsg 'Has Selection:' has_selection
   let [pat, flag] = s:build_pattern(c_line, a:pattern, a:motion, has_selection)
-  echomsg 'Search Pattern:' pat
-  echomsg 'Search Flags:' flag
+  " echomsg 'Search Pattern:' pat
+  " echomsg 'Search Flags:' flag
 
   let head = searchpos(pat, flag.'W')
   let tail = searchpos(pat, 'nceW')
 
   let tbyte = line2byte(tail[0]) + tail[1]
   let hbyte = line2byte(head[0]) + head[1]
-  echomsg 'Head Byte:' hbyte 'Tail Byte:' tbyte
+  " echomsg 'Head Byte:' hbyte 'Tail Byte:' tbyte
 
   if (hbyte == 0 && tbyte == 0) || hbyte == -1 || tbyte == -1
     if a:keymode ==# 'v'
@@ -195,11 +195,11 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
 
   " Finally begin the block search
   let head = searchpos(pat, 'cbW')
-  echomsg 'Matched Line:' getline(head[0])
+  " echomsg 'Matched Line:' getline(head[0])
 
   let [i_c, i_n] = s:get_indent(head[0], 0)
   let pat = '^'.i_c.'\{,'.i_n.'}'.a:stop_pattern
-  echomsg 'Stop Pattern:' pat
+  " echomsg 'Stop Pattern:' pat
 
   let startline = nextnonblank(tail[0] + 1)
   let lastline = s:get_block_end(startline, pat)
@@ -227,7 +227,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   endif
 
   let end = col([lastline, '$'])
-  echomsg 'Last Line' lastline
+  " echomsg 'Last Line' lastline
 
   if a:select == 1
     call cursor(lastline, end - 1)
@@ -311,7 +311,7 @@ function! s:mark_column(line1, line2, column)
     return
   endif
 
-  echomsg a:line1 '-' a:line2 '-' a:column
+  " echomsg a:line1 '-' a:line2 '-' a:column
 
   let matches = []
   for i in range(a:line1 + 1, a:line2, 8)
