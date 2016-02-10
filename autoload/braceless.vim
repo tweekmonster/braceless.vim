@@ -414,29 +414,29 @@ endfunction
 
 
 " Highlight indent block
-function! braceless#highlight(ignore_prev)
+function! braceless#highlight(force)
   if !get(b:, 'braceless_enable_highlight', get(g:, 'braceless_enable_highlight', 0))
     return
   endif
 
   let l = line('.')
-  let last_line = get(b:, 'braceless_last_line', 0)
+  let [pattern, _] = braceless#get_pattern()
+  let pblock = search('^\s*'.pattern, 'ncbW')
+  let i_l = braceless#indent#level(pblock, 0)
 
-  let b:braceless_last_line = l
+  if !a:force && exists('b:braceless_highlight_cache')
+    let c = b:braceless_highlight_cache
+    if pblock == c[0] && i_l == c[1] && l >= c[2][0] && l <= c[2][1]
+      return
+    endif
+  endif
+
   let il = braceless#get_block_lines(line('.'))
   if type(il) != 3
     return
   endif
 
-  if !a:ignore_prev
-    let last_range = get(b:, 'braceless_range', [0, 0])
-    if il[0] == last_range[0] && il[1] == last_range[1]
-      return
-    endif
-  endif
-
-  let b:braceless_range = il
-
+  let b:braceless_highlight_cache = [pblock, i_l, il]
   call s:highlight_line(il[0], il[1])
 endfunction
 
