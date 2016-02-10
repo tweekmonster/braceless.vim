@@ -259,7 +259,11 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   endif
 
   if !empty(a:vmode) && a:select == 1 && (a:keymode == 'v' || a:op != '')
-    exec 'normal!' a:vmode
+    if a:op ==? 'y'
+      normal! V
+    else
+      exec 'normal!' a:vmode
+    endif
   endif
 
   if lastline < startline
