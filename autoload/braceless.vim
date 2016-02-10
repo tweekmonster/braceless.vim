@@ -309,9 +309,13 @@ endfunction
 function! braceless#enable_highlight(b)
   let b:braceless_enable_highlight = a:b
   if a:b
-    silent call braceless#highlight(1)
+    call braceless#highlight(1)
+    autocmd WinEnter,BufEnter <buffer> call braceless#highlight(1)
+    autocmd WinLeave,BufLeave <buffer> call s:mark_column(0, 0, 0)
   else
     call s:mark_column(0, 0, 0)
+    autocmd! WinEnter,BufWinEnter <buffer>
+    autocmd! WinLeave,BufWinLeave <buffer>
   endif
 endfunction
 
@@ -350,6 +354,7 @@ function! s:mark_column(line1, line2, column)
       silent! call matchdelete(id)
     endfor
     unlet b:braceless_column
+    silent! unlet w:braceless_highlight_cache
   endif
 
   if a:line1 == 0
@@ -424,8 +429,8 @@ function! braceless#highlight(force)
   let pblock = search('^\s*'.pattern, 'ncbW')
   let i_l = braceless#indent#level(pblock, 0)
 
-  if !a:force && exists('b:braceless_highlight_cache')
-    let c = b:braceless_highlight_cache
+  if !a:force && exists('w:braceless_highlight_cache')
+    let c = w:braceless_highlight_cache
     if pblock == c[0] && i_l == c[1] && l >= c[2][0] && l <= c[2][1]
       return
     endif
@@ -436,7 +441,7 @@ function! braceless#highlight(force)
     return
   endif
 
-  let b:braceless_highlight_cache = [pblock, i_l, il]
+  let w:braceless_highlight_cache = [pblock, i_l, il]
   call s:highlight_line(il[0], il[1])
 endfunction
 
