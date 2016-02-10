@@ -36,10 +36,16 @@ function! s:init()
   execute "vnoremap <silent> <Plug>(braceless-a-v) :<C-u>".s:callprefix."call braceless#block_op('a', 'v', visualmode(), '')<cr>"
   execute "onoremap <silent> <Plug>(braceless-i-n) :<C-u>".s:callprefix."call braceless#block_op('i', 'n', visualmode(), v:operator)<cr>"
   execute "onoremap <silent> <Plug>(braceless-a-n) :<C-u>".s:callprefix."call braceless#block_op('a', 'n', visualmode(), v:operator)<cr>"
-  execute "vnoremap <silent> <Plug>(braceless-jump-prev-v) :<C-u>".s:callprefix."call braceless#block_jump(-1, visualmode(), v:count1)<cr>"
-  execute "vnoremap <silent> <Plug>(braceless-jump-next-v) :<C-u>".s:callprefix."call braceless#block_jump(1, visualmode(), v:count1)<cr>"
-  execute "noremap <silent> <Plug>(braceless-jump-prev-n) :<C-u>".s:callprefix."call braceless#block_jump(-1, 'n', v:count1)<cr>"
-  execute "noremap <silent> <Plug>(braceless-jump-next-n) :<C-u>".s:callprefix."call braceless#block_jump(1, 'n', v:count1)<cr>"
+
+  execute "vnoremap <silent> <Plug>(braceless-jump-prev-v) :<C-u>".s:callprefix."call braceless#block_jump(-1, visualmode(), 0, v:count1)<cr>"
+  execute "vnoremap <silent> <Plug>(braceless-jump-next-v) :<C-u>".s:callprefix."call braceless#block_jump(1, visualmode(), 0, v:count1)<cr>"
+  execute "vnoremap <silent> <Plug>(braceless-jump-prev-v-indent) :<C-u>".s:callprefix."call braceless#block_jump(-1, visualmode(), 1, v:count1)<cr>"
+  execute "vnoremap <silent> <Plug>(braceless-jump-next-v-indent) :<C-u>".s:callprefix."call braceless#block_jump(1, visualmode(), 1, v:count1)<cr>"
+
+  execute "noremap <silent> <Plug>(braceless-jump-prev-n) :<C-u>".s:callprefix."call braceless#block_jump(-1, 'n', 0, v:count1)<cr>"
+  execute "noremap <silent> <Plug>(braceless-jump-next-n) :<C-u>".s:callprefix."call braceless#block_jump(1, 'n', 0, v:count1)<cr>"
+  execute "noremap <silent> <Plug>(braceless-jump-prev-n-indent) :<C-u>".s:callprefix."call braceless#block_jump(-1, 'n', 1, v:count1)<cr>"
+  execute "noremap <silent> <Plug>(braceless-jump-next-n-indent) :<C-u>".s:callprefix."call braceless#block_jump(1, 'n', 1, v:count1)<cr>"
 
   execute 'vmap i'.block_key.' <Plug>(braceless-i-v)'
   execute 'vmap a'.block_key.' <Plug>(braceless-a-v)'
@@ -48,8 +54,13 @@ function! s:init()
 
   execute 'map ['.jump_prev_key.' <Plug>(braceless-jump-prev-n)'
   execute 'map ]'.jump_next_key.' <Plug>(braceless-jump-next-n)'
+  execute 'map g'.jump_prev_key.' <Plug>(braceless-jump-prev-n-indent)'
+  execute 'map g'.jump_next_key.' <Plug>(braceless-jump-next-n-indent)'
+
   execute 'vmap ['.jump_prev_key.' <Plug>(braceless-jump-prev-v)'
   execute 'vmap ]'.jump_next_key.' <Plug>(braceless-jump-next-v)'
+  execute 'vmap g'.jump_prev_key.' <Plug>(braceless-jump-prev-v-indent)'
+  execute 'vmap g'.jump_next_key.' <Plug>(braceless-jump-next-v-indent)'
 
 
   highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse

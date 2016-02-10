@@ -482,7 +482,7 @@ endfunction
 
 
 " Jump to an *actual* meaningful block in Python!
-function! braceless#block_jump(direction, vmode, count)
+function! braceless#block_jump(direction, vmode, by_indent, count)
   let [pattern, stop_pattern] = braceless#get_pattern()
   if empty(pattern)
     return
@@ -497,7 +497,15 @@ function! braceless#block_jump(direction, vmode, count)
     let flags = 'b'
   endif
 
-  let pat = '^\s*'
+  let pat = '^'
+  if a:by_indent
+    let block = braceless#get_block_lines(line('.'))
+    let [i_c, i_n] = braceless#indent#space(block[2], 0)
+    let pat .= i_c.'\{'.i_n.'}'
+  else
+    let pat .= '\s*'
+  endif
+
   if pattern !~ '\\zs'
     let pat .= '\zs'
   endif
