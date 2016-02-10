@@ -119,6 +119,17 @@ function! s:build_pattern(line, base, motion, selected)
     endif
 
     let [i_c, i_n] = braceless#indent#space(i_l, i_d)
+
+    " Even though we found the indent level of a block, make sure it has a
+    " body.  If it doesn't, lower the indent level by one.
+    if getline(i_l) =~ '^\s*'.a:base
+      let nextline = nextnonblank(i_l + 1)
+      let [_, i_n2] = braceless#indent#space(nextline, i_d)
+      if i_n >= i_n2
+        let [_, i_n] = braceless#indent#space(i_l, i_d - 1)
+      endif
+    endif
+
     let pat = '^'.i_c.'\{-,'.i_n.'}'
   endif
 
