@@ -1,29 +1,29 @@
 " Gets the indent level of a line and modifies it with a indent level delta.
 function! braceless#indent#level(expr, delta)
-  let i_n = indent(a:expr)
+  let indent_len = indent(a:expr)
   let d = 1
   if !&expandtab
-    let i_n = (i_n / &ts) + a:delta
+    let indent_len = (indent_len / &ts) + a:delta
   else
-    let i_n += &sw * a:delta
+    let indent_len += &sw * a:delta
     let d = &sw
   endif
-  return max([0, i_n]) / d
+  return max([0, indent_len]) / d
 endfunction
 
 
 " Gets the indent level (in characters) of a line and modifies it with a
 " indent level delta.
 function! braceless#indent#space(expr, delta)
-  let i_c = ' '
-  let i_n = indent(a:expr)
+  let indent_char = ' '
+  let indent_len = indent(a:expr)
   if !&expandtab
-    let i_c = '\t'
-    let i_n = (i_n / &ts) + a:delta
+    let indent_char = '\t'
+    let indent_len = (indent_len / &ts) + a:delta
   else
-    let i_n += &sw * a:delta
+    let indent_len += &sw * a:delta
   endif
-  return [i_c, max([0, i_n])]
+  return [indent_char, max([0, indent_len])]
 endfunction
 
 
@@ -50,13 +50,13 @@ function! s:indent_non_blocks(line, prev)
 
     " The pair start is at the end of the line, indent past the pair start
     " line.
-    let i_n = 1
+    let indent_delta = 1
     if a:line == col_tail[0]
       if getline(col_tail[0]) =~ '^\s*\%('.s:collection[1].'\)\+\s*$'
-        let i_n = 0
+        let indent_delta = 0
       endif
     endif
-    return braceless#indent#space(col_head[0], i_n)[1]
+    return braceless#indent#space(col_head[0], indent_delta)[1]
   endif
 
   " Try docstrings

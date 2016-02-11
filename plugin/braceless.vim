@@ -13,12 +13,12 @@ function! s:setup_easymotion()
   let prev_key = get(g:, 'braceless_easymotion_prev_key', '[')
   let block_key = get(g:, 'braceless_block_key', ':')
 
-  silent execute 'map <silent> <Plug>(easymotion-prefix)'.next_key.' :<C-u>call braceless#easymotion(0, 0)<cr>'
-  silent execute 'map <silent> <Plug>(easymotion-prefix)'.prev_key.' :<C-u>call braceless#easymotion(0, 1)<cr>'
-  silent execute 'map <silent> <Plug>(easymotion-prefix)'.block_key.' :<C-u>call braceless#easymotion(0, 2)<cr>'
-  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.next_key.' :<C-u>call braceless#easymotion(1, 0)<cr>'
-  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.prev_key.' :<C-u>call braceless#easymotion(1, 1)<cr>'
-  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.block_key.' :<C-u>call braceless#easymotion(1, 2)<cr>'
+  silent execute 'map <silent> <Plug>(easymotion-prefix)'.next_key.' :<C-u>call braceless#easymotion#blocks(0, 0)<cr>'
+  silent execute 'map <silent> <Plug>(easymotion-prefix)'.prev_key.' :<C-u>call braceless#easymotion#blocks(0, 1)<cr>'
+  silent execute 'map <silent> <Plug>(easymotion-prefix)'.block_key.' :<C-u>call braceless#easymotion#blocks(0, 2)<cr>'
+  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.next_key.' :<C-u>call braceless#easymotion#blocks(1, 0)<cr>'
+  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.prev_key.' :<C-u>call braceless#easymotion#blocks(1, 1)<cr>'
+  silent execute 'xmap <silent> <Plug>(easymotion-prefix)'.block_key.' :<C-u>call braceless#easymotion#blocks(1, 2)<cr>'
 endfunction
 
 
@@ -37,15 +37,15 @@ function! s:init()
   execute "onoremap <silent> <Plug>(braceless-i-n) :<C-u>".s:callprefix."call braceless#block_op('i', 'n', visualmode(), v:operator)<cr>"
   execute "onoremap <silent> <Plug>(braceless-a-n) :<C-u>".s:callprefix."call braceless#block_op('a', 'n', visualmode(), v:operator)<cr>"
 
-  execute "vnoremap <silent> <Plug>(braceless-jump-prev-v) :<C-u>".s:callprefix."call braceless#block_jump(-1, visualmode(), 0, v:count1)<cr>"
-  execute "vnoremap <silent> <Plug>(braceless-jump-next-v) :<C-u>".s:callprefix."call braceless#block_jump(1, visualmode(), 0, v:count1)<cr>"
-  execute "vnoremap <silent> <Plug>(braceless-jump-prev-v-indent) :<C-u>".s:callprefix."call braceless#block_jump(-1, visualmode(), 1, v:count1)<cr>"
-  execute "vnoremap <silent> <Plug>(braceless-jump-next-v-indent) :<C-u>".s:callprefix."call braceless#block_jump(1, visualmode(), 1, v:count1)<cr>"
+  execute "vnoremap <silent> <Plug>(braceless-jump-prev-v) :<C-u>".s:callprefix."call braceless#movement#block(-1, visualmode(), 0, v:count1)<cr>"
+  execute "vnoremap <silent> <Plug>(braceless-jump-next-v) :<C-u>".s:callprefix."call braceless#movement#block(1, visualmode(), 0, v:count1)<cr>"
+  execute "vnoremap <silent> <Plug>(braceless-jump-prev-v-indent) :<C-u>".s:callprefix."call braceless#movement#block(-1, visualmode(), 1, v:count1)<cr>"
+  execute "vnoremap <silent> <Plug>(braceless-jump-next-v-indent) :<C-u>".s:callprefix."call braceless#movement#block(1, visualmode(), 1, v:count1)<cr>"
 
-  execute "noremap <silent> <Plug>(braceless-jump-prev-n) :<C-u>".s:callprefix."call braceless#block_jump(-1, 'n', 0, v:count1)<cr>"
-  execute "noremap <silent> <Plug>(braceless-jump-next-n) :<C-u>".s:callprefix."call braceless#block_jump(1, 'n', 0, v:count1)<cr>"
-  execute "noremap <silent> <Plug>(braceless-jump-prev-n-indent) :<C-u>".s:callprefix."call braceless#block_jump(-1, 'n', 1, v:count1)<cr>"
-  execute "noremap <silent> <Plug>(braceless-jump-next-n-indent) :<C-u>".s:callprefix."call braceless#block_jump(1, 'n', 1, v:count1)<cr>"
+  execute "noremap <silent> <Plug>(braceless-jump-prev-n) :<C-u>".s:callprefix."call braceless#movement#block(-1, 'n', 0, v:count1)<cr>"
+  execute "noremap <silent> <Plug>(braceless-jump-next-n) :<C-u>".s:callprefix."call braceless#movement#block(1, 'n', 0, v:count1)<cr>"
+  execute "noremap <silent> <Plug>(braceless-jump-prev-n-indent) :<C-u>".s:callprefix."call braceless#movement#block(-1, 'n', 1, v:count1)<cr>"
+  execute "noremap <silent> <Plug>(braceless-jump-next-n-indent) :<C-u>".s:callprefix."call braceless#movement#block(1, 'n', 1, v:count1)<cr>"
 
   execute 'vmap i'.block_key.' <Plug>(braceless-i-v)'
   execute 'vmap a'.block_key.' <Plug>(braceless-a-v)'
@@ -67,8 +67,8 @@ function! s:init()
 
   augroup braceless
     autocmd!
-    execute 'autocmd CursorMoved * '.s:callprefix.' call braceless#highlight(0)'
-    execute 'autocmd CursorMovedI * '.s:callprefix.' call braceless#highlight(0)'
+    execute 'autocmd CursorMoved * '.s:callprefix.' call braceless#highlight#update(0)'
+    execute 'autocmd CursorMovedI * '.s:callprefix.' call braceless#highlight#update(0)'
   augroup END
 
   if get(g:, 'braceless_enable_easymotion', 1)
