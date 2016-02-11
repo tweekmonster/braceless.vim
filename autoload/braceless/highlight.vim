@@ -73,12 +73,19 @@ function! braceless#highlight#enable(b)
   let b:braceless_enable_highlight = a:b
   if a:b
     call braceless#highlight#update(1)
-    autocmd WinEnter,BufEnter <buffer> call braceless#highlight#update(1)
-    autocmd WinLeave,BufLeave <buffer> call s:mark_column(0, 0, 0)
+
+    augroup braceless_highlight
+      autocmd! * <buffer>
+      autocmd CursorMoved,CursorMovedI <buffer> call braceless#highlight#update(0)
+      autocmd WinEnter,BufEnter <buffer> call braceless#highlight#update(1)
+      autocmd WinLeave,BufLeave <buffer> call s:mark_column(0, 0, 0)
+    augroup END
   else
     call s:mark_column(0, 0, 0)
-    autocmd! WinEnter,BufWinEnter <buffer>
-    autocmd! WinLeave,BufWinLeave <buffer>
+
+    augroup braceless_highlight
+      autocmd! * <buffer>
+    augroup END
   endif
 endfunction
 
@@ -90,7 +97,7 @@ endfunction
 
 " Highlight indent block
 function! braceless#highlight#update(force)
-  if !get(b:, 'braceless_enable_highlight', get(g:, 'braceless_enable_highlight', 0))
+  if !get(b:, 'braceless_enable_highlight', 0)
     return
   endif
 
