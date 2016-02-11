@@ -68,7 +68,7 @@ function! s:init()
   augroup braceless
     autocmd!
     execute 'autocmd CursorMoved * '.s:callprefix.' call braceless#highlight(0)'
-    execute 'autocmd CursorMovedI * '.s:callprefix.' call braceless#highlight(1)'
+    execute 'autocmd CursorMovedI * '.s:callprefix.' call braceless#highlight(0)'
   augroup END
 
   if get(g:, 'braceless_enable_easymotion', 1)
