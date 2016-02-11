@@ -452,6 +452,11 @@ function! braceless#highlight(force)
     return
   endif
 
+  if l < il[0] || l > il[1]
+    call s:mark_column(0, 0, 0)
+    return
+  endif
+
   let w:braceless_highlight_cache = [pblock, i_l, il]
   call s:highlight_line(il[0], il[1])
 endfunction
