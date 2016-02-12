@@ -54,7 +54,7 @@ function! s:get_block_end(start, pattern)
 
   while start > 0 && start <= end
     if getline(start) =~ a:pattern && !braceless#is_string(start)
-      let lastline = prevnonblank(start - 1)
+      let lastline = braceless#prevnonstring(start - 1)
       break
     endif
     let start = nextnonblank(start + 1)
@@ -169,13 +169,25 @@ function! s:best_indent(line)
 endfunction
 
 
-let s:docstr = '\%("""\|''''''\)'
-
 function! braceless#is_string(line, ...)
   return synIDattr(synID(a:line, a:0 ? a:1 : 1, 1), 'name') =~ '\(Comment\|Todo\|String\|Heredoc\)$'
 endfunction
 
 
+function! braceless#prevnonstring(line)
+  let l = a:line
+  while l > 0
+    if !braceless#is_string(l)
+      return l
+    endif
+    let l = prevnonblank(l - 1)
+  endwhile
+
+  return l
+endfunction
+
+
+let s:docstr = '\%("""\|''''''\)'
 " Returns the start and end lines for docstrings
 " Couldn't get this to work reliably using searches.
 function! braceless#docstring(line, ...)
