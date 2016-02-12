@@ -18,28 +18,42 @@ let g:braceless#key#em_next = get(g:, 'braceless_easymotion_next_key', g:bracele
 function! s:enable(...)
   let b:braceless_enabled = 1
 
-  execute 'vmap <buffer> i'.g:braceless#key#block.' <Plug>(braceless-i-v)'
-  execute 'vmap <buffer> a'.g:braceless#key#block.' <Plug>(braceless-a-v)'
-  execute 'omap <buffer> i'.g:braceless#key#block.' <Plug>(braceless-i-n)'
-  execute 'omap <buffer> a'.g:braceless#key#block.' <Plug>(braceless-a-n)'
+  if !empty(g:braceless#key#block)
+    execute 'vmap <buffer> i'.g:braceless#key#block.' <Plug>(braceless-i-v)'
+    execute 'vmap <buffer> a'.g:braceless#key#block.' <Plug>(braceless-a-v)'
+    execute 'omap <buffer> i'.g:braceless#key#block.' <Plug>(braceless-i-n)'
+    execute 'omap <buffer> a'.g:braceless#key#block.' <Plug>(braceless-a-n)'
+  endif
 
-  execute 'map <buffer> ['.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-n)'
-  execute 'map <buffer> ]'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-n)'
-  execute 'map <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-n-indent)'
-  execute 'map <buffer> g'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-n-indent)'
+  if !empty(g:braceless#key#jump_prev)
+    execute 'map <buffer> ['.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-n)'
+    execute 'map <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-n-indent)'
+    execute 'vmap <buffer> ['.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-v)'
+    execute 'vmap <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-v-indent)'
+  endif
 
-  execute 'vmap <buffer> ['.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-v)'
-  execute 'vmap <buffer> ]'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-v)'
-  execute 'vmap <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-v-indent)'
-  execute 'vmap <buffer> g'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-v-indent)'
+  if !empty(g:braceless#key#jump_next)
+    execute 'map <buffer> ]'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-n)'
+    execute 'map <buffer> g'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-n-indent)'
+    execute 'vmap <buffer> ]'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-v)'
+    execute 'vmap <buffer> g'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-v-indent)'
+  endif
 
   if get(g:, 'braceless_enable_easymotion', 1)
-    silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_next.' :<C-u>call braceless#easymotion#blocks(0, 0)<cr>'
-    silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_prev.' :<C-u>call braceless#easymotion#blocks(0, 1)<cr>'
-    silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#block.' :<C-u>call braceless#easymotion#blocks(0, 2)<cr>'
-    silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_next.' :<C-u>call braceless#easymotion#blocks(1, 0)<cr>'
-    silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_prev.' :<C-u>call braceless#easymotion#blocks(1, 1)<cr>'
-    silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#block.' :<C-u>call braceless#easymotion#blocks(1, 2)<cr>'
+    if !empty(g:braceless#key#block)
+      silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#block.' :<C-u>call braceless#easymotion#blocks(0, 2)<cr>'
+      silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#block.' :<C-u>call braceless#easymotion#blocks(1, 2)<cr>'
+    endif
+
+    if !empty(g:braceless#key#em_prev)
+      silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_prev.' :<C-u>call braceless#easymotion#blocks(0, 1)<cr>'
+      silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_prev.' :<C-u>call braceless#easymotion#blocks(1, 1)<cr>'
+    endif
+
+    if !empty(g:braceless#key#em_next)
+      silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_next.' :<C-u>call braceless#easymotion#blocks(0, 0)<cr>'
+      silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_next.' :<C-u>call braceless#easymotion#blocks(1, 0)<cr>'
+    endif
   endif
 
   if !exists('b:braceless')
