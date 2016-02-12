@@ -1,12 +1,12 @@
 function! s:highlight_line(line1, line2)
-  let use_cc = get(g:, 'braceless_highlight_use_cc', 0)
-  if !exists('s:origcc')
-    let s:origcc = &cc
+  let use_cc = get(b:braceless, 'highlight_cc', 0)
+  if !has_key(b:braceless, 'orig_cc')
+    let b:braceless.orig_cc = &l:cc
   endif
 
   if a:line1 < 1
     if use_cc
-      let &cc = s:origcc
+      let &l:cc = b:braceless.orig_cc
     endif
 
     call s:mark_column(0, 0, 0)
@@ -16,7 +16,7 @@ function! s:highlight_line(line1, line2)
   let [_, indent_len] = braceless#indent#space(a:line1, 0)
 
   if use_cc > 0
-    let &cc = s:origcc.','.(indent_len+1)
+    let &l:cc = b:braceless.orig_cc.','.(indent_len+1)
     if use_cc == 1
       return
     endif
@@ -27,11 +27,11 @@ endfunction
 
 
 function! s:mark_column(line1, line2, column)
-  if exists('b:braceless_column')
-    for id in b:braceless_column
+  if has_key(b:braceless, 'highlight_column')
+    for id in b:braceless.highlight_column
       silent! call matchdelete(id)
     endfor
-    unlet b:braceless_column
+    unlet b:braceless.highlight_column
     silent! unlet w:braceless_highlight_cache
   endif
 
@@ -64,13 +64,13 @@ function! s:mark_column(line1, line2, column)
     call add(matches, id)
   endfor
 
-  let b:braceless_column = matches
+  let b:braceless.highlight_column = matches
 endfunction
 
 
 " Enable/disable block highlighting on a per-buffer basis
 function! braceless#highlight#enable(b)
-  let b:braceless_enable_highlight = a:b
+  let b:braceless.highlight = a:b
   if a:b
     call braceless#highlight#update(1)
 
@@ -91,13 +91,13 @@ endfunction
 
 
 function! braceless#highlight#toggle()
-  call braceless#highlight#enable(!get(b:, 'braceless_enable_highlight', 0))
+  call braceless#highlight#enable(!get(b:braceless, 'highlight', 0))
 endfunction
 
 
 " Highlight indent block
 function! braceless#highlight#update(force)
-  if !get(b:, 'braceless_enable_highlight', 0)
+  if !get(b:braceless, 'highlight', 0)
     return
   endif
 

@@ -42,17 +42,43 @@ function! s:enable(...)
     silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#block.' :<C-u>call braceless#easymotion#blocks(1, 2)<cr>'
   endif
 
-  if a:0 < 1
-    return
+  if !exists('b:braceless')
+    let b:braceless = {}
+  endif
+
+  call braceless#highlight#enable(0)
+
+  if has_key(b:braceless, 'foldmethod')
+    let &l:foldmethod = b:braceless.foldmethod
+    let &l:foldexpr = b:braceless.foldmethod
+  endif
+
+  if has_key(b:braceless, 'orig_cc')
+    let &l:cc = b:braceless.orig_cc
   endif
 
   for opt in a:000
-    if opt =~ '+fold'
-      if opt == '+fold-inner'
-        let b:braceless_fold_inner = 1
+    if opt =~ '^+fold'
+      if opt[-6:] == '-inner'
+        let b:braceless.fold_inner = 1
+      else
+        let b:braceless.fold_inner = 0
       endif
+
+      let b:braceless.foldmethod = &l:foldmethod
+      let b:braceless.foldexpr = &l:foldexpr
+
       setlocal foldmethod=expr
       setlocal foldexpr=braceless#fold#expr(v:lnum)
+    elseif opt =~ '^+highlight'
+      if opt[-3:] == '-cc'
+        let b:braceless.highlight_cc = 1
+      elseif opt[-4:] == '-cc2'
+        let b:braceless.highlight_cc = 2
+      else
+        let b:braceless.highlight_cc = 0
+      endif
+      call braceless#highlight#enable(1)
     endif
   endfor
 endfunction
@@ -77,9 +103,6 @@ function! s:init()
   highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
 
   command! -nargs=* BracelessEnable call s:enable(<f-args>)
-  command! BracelessHighlightToggle call braceless#highlight#toggle()
-  command! BracelessHighlightEnable call braceless#highlight#enable(1)
-  command! BracelessHighlightDisable call braceless#highlight#enable(0)
 endfunction
 
 call s:init()
