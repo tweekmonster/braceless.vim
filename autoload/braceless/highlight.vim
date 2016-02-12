@@ -102,8 +102,8 @@ function! braceless#highlight#update(force)
   endif
 
   let l = line('.')
-  let [pattern, _] = braceless#get_pattern()
-  let pblock = search('^\s*'.pattern, 'ncbW')
+  let pattern = braceless#get_pattern()
+  let pblock = search('^\s*'.pattern.start, 'ncbW')
   let indent_level = braceless#indent#level(pblock, 0)
 
   if !a:force && exists('w:braceless_highlight_cache')

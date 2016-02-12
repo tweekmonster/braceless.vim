@@ -1,17 +1,14 @@
 " EasyMotion for indent blocks
 function! braceless#easymotion#blocks(vmode, direction)
-  let [pattern, stop_pattern] = braceless#get_pattern()
-  if empty(pattern)
-    return
-  endif
+  let pattern = braceless#get_pattern()
 
   let pat = '^\s*'
-  if pattern !~ '\\zs'
+  if pattern.easymotion !~ '\\zs'
     let pat .= '\zs'
   endif
-  let pat .= pattern
+  let pat .= pattern.easymotion
 
-  if pattern !~ '\\ze'
+  if pattern.easymotion !~ '\\ze'
     let pat .= '\ze'
   endif
 

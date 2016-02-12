@@ -5,15 +5,26 @@
 let s:cpo_save = &cpo
 set cpo&vim
 
-let s:pattern_python = '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:'
+" The cache of found patterns
+let s:pattern_cache = {}
 
-let s:pattern_coffee = '\%('
-                      \  .'\%(\zs\%(do\|if\|for\|try\|else\|when\|with\|catch\|class\|while\|switch\|finally\).*\)\|'
-                      \  .'\S\&.\+\%('
-                      \    .'\zs(.*)\s*[-=]>'
-                      \    .'\|\((.*)\s*\)\@<!\zs[-=]>'
-                      \    .'\|\zs=\_$'
-                      \.'\)\).*'
+
+" Default patterns
+let s:pattern_default = {}
+let s:pattern_default.python = {
+      \   'start': '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:',
+      \   'end': '\S',
+      \}
+let s:pattern_default.coffee = {
+      \   'start': '\%('
+      \             .'\%(\zs\%(do\|if\|for\|try\|else\|when\|with\|catch\|class\|while\|switch\|finally\).*\)\|'
+      \             .'\S\&.\+\%('
+      \               .'\zs(.*)\s*[-=]>'
+      \               .'\|\((.*)\s*\)\@<!\zs[-=]>'
+      \               .'\|\zs=\_$'
+      \           .'\)\).*',
+      \   'end': '\S',
+      \}
 
 " Coffee Script is tricky as hell to match.  Explanation of above:
 " - Start an atom that groups everything, so that searchpos() will match the
@@ -227,7 +238,7 @@ endfunction
 
 
 " Select an indent block using ~magic~
-function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, op, select)
+function! braceless#select_block(pattern, motion, keymode, vmode, op, select)
   let has_selection = 0
   if a:op == ''
     let has_selection = s:is_selected()
@@ -239,7 +250,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
     return 0
   endif
 
-  let [pat, flag] = s:build_pattern(c_line, a:pattern, a:motion, has_selection)
+  let [pat, flag] = s:build_pattern(c_line, a:pattern.start, a:motion, has_selection)
 
   let head = searchpos(pat, flag.'W')
   let tail = searchpos(pat, 'nceW')
@@ -257,7 +268,7 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
   let head = searchpos(pat, 'cbW')
 
   let [indent_char, indent_len] = braceless#indent#space(head[0], 0)
-  let pat = '^'.indent_char.'\{,'.indent_len.'}'.a:stop_pattern
+  let pat = '^'.indent_char.'\{,'.indent_len.'}'.a:pattern.stop
 
   let startline = nextnonblank(tail[0] + 1)
   let lastline = s:get_block_end(startline, pat)
@@ -304,28 +315,36 @@ function! braceless#select_block(pattern, stop_pattern, motion, keymode, vmode, 
 endfunction
 
 
-" Gets a pattern.  If g:braceless#start#<filetype> does not exist, fallback to
-" a built in one, and if that doesn't exist, return an empty string.
-function! braceless#get_pattern()
-  let pvar = 'pattern_pair_'.&ft
-  if !exists('s:'.pvar)
-    let pattern = get(g:, 'braceless#start#'.&ft, get(s:, 'pattern_'.&ft, '\S.*'))
-    let stop_pattern = get(g:, 'braceless#stop#'.&ft, get(s:, 'pattern_stop_'.&ft, '\S'))
-    let s:[pvar] = [pattern, stop_pattern]
+" Gets a pattern.  If g:braceless#pattern#<filetype> does not exist, fallback to
+" a built in one, and if that doesn't exist, use basic matching
+function! braceless#get_pattern(...)
+  let lang = &ft
+  if a:0 > 0 && type(a:1) == 1
+    let lang = a:1
   endif
-  return get(s:, pvar)
+
+  if !has_key(s:pattern_cache, lang)
+    let pat = get(g:, 'braceless#pattern#'.lang, {})
+    let def = get(s:pattern_default, lang, {})
+    let start_pat = get(pat, 'start', get(def, 'start', '\S.*'))
+    let stop_pat = get(pat, 'stop', get(def, 'stop', '\S'))
+    let s:pattern_cache[lang] = {
+          \   'start': start_pat,
+          \   'stop': stop_pat,
+          \   'jump': get(pat, 'jump', get(def, 'jump', start_pat)),
+          \   'easymotion': get(pat, 'easymotion', get(def, 'easymotion', start_pat)),
+          \ }
+  endif
+  return get(s:pattern_cache, lang)
 endfunction
 
 
+" Gets the lines involved in a block without selecting it
 function! braceless#get_block_lines(line)
-  let [pattern, stop_pattern] = braceless#get_pattern()
-  if empty(pattern)
-    return
-  endif
-
+  let pattern = braceless#get_pattern()
   let saved = winsaveview()
   call cursor(a:line, col([a:line, '$']))
-  let block = braceless#select_block(pattern, stop_pattern, 'a', 'n', '', '', 0)
+  let block = braceless#select_block(pattern, 'a', 'n', '', '', 0)
   call winrestview(saved)
   if type(block) != 3
     return
@@ -345,11 +364,8 @@ endfunction
 
 " Kinda like black ops, but more exciting.
 function! braceless#block_op(motion, keymode, vmode, op)
-  let [pattern, stop_pattern] = braceless#get_pattern()
-  if empty(pattern)
-    return
-  endif
-  call braceless#select_block(pattern, stop_pattern, a:motion, a:keymode, a:vmode, a:op, 1)
+  let pattern = braceless#get_pattern()
+  call braceless#select_block(pattern, a:motion, a:keymode, a:vmode, a:op, 1)
 endfunction
 
 

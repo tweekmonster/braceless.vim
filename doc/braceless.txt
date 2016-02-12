@@ -24,6 +24,7 @@ CONTENTS                                                   *braceless-contents*
     Folding                 |braceless-folds|
     Highlight               |braceless-highlight|
     EasyMotion              |braceless-easymotion|
+    Custom Patterns         |braceless-custom|
   Misc
     License                 |braceless-license|
 
@@ -248,6 +249,58 @@ blocks in both directions.
 
 EasyMotion is a plugin worthy of the highest praise.  Do yourself a favor and
 install it if you haven't already.
+
+
+CUSTOM PATTERNS                                              *braceless-custom*
+==============================================================================
+
+Braceless can be customized to match blocks in different languages.  Keep in
+mind that this plugin is designed to deal with indented blocks.
+
+A pattern can be defined using:
+>
+  let g:braceless#pattern#<filetype> = {
+  \   'start': '',
+  \   'stop': '',
+  \   'jump': '',
+  \   'easymotion': '',
+  \ }
+<
+The keys mentioned above defines a regexp |pattern|.  The most important being
+`start` which is used as the default for `jump` and `easymotion` if they are
+missing.  The `stop` pattern helps Braceless understand where the block ends,
+but shouldn't be necessary to define in most situations.  When omitted,
+`start` will default to `\S.*`, and `stop` will default to `\S`.
+
+The patterns should only include the text that you actually want to match.
+Braceless prefixes the patterns with an extra bit that helps it match
+indentation.  You may add |\zs| and |\ze| to define where the cursor should
+land.  If your pattern omits these, Braceless will add them to the beginning
+and end of your patterns as needed.
+
+For example, here is the default `start` pattern (shortened for the example)
+for Python:
+>
+ \%(if\|def\|for\|elif\|else\|with\|class\|while\)\_.\{-}:
+<
+This pattern searches for the text in the first atom followed by any character
+(including newlines, as few as possible), followed by a colon.  When selecting
+a block at indent level 1, the pattern is transformed into:
+>
+ ^ \{-,4}\zs\%(if\|def\|for\|elif\|else\|with\|class\|while\)\_.\{-}:
+<
+Look at `autoload/braceless.vim` for a more complicated example for
+CoffeeScript.
+
+If you want to override a default pattern, you only need to define the key you
+wish to override.  For example, suppose you want |[[| and |]]| to only move
+to `class` and `def` blocks, while retaining the ability to select other
+blocks:
+>
+  let g:braceless#pattern#python = {
+  \   'jump': '\%(def\|class\)\_.\{-}:',
+  \ }
+<
 
 
 LICENSE                                                     *braceless-license*

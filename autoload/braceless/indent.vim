@@ -64,8 +64,8 @@ function! s:indent_non_blocks(line, prev)
     let docstr = braceless#docstring(a:line)
     if docstr[0] != 0
       if a:line == docstr[0] || a:line == docstr[1]
-        let [pattern, _] = braceless#get_pattern()
-        let block = search('^\s*'.pattern, 'nbW')
+        let pattern = braceless#get_pattern()
+        let block = search('^\s*'.pattern.start, 'nbW')
         return braceless#indent#space(block, 1)[1]
       endif
 

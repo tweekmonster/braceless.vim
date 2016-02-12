@@ -1,9 +1,6 @@
 " Jump to an *actual* meaningful block in Python!
 function! braceless#movement#block(direction, vmode, by_indent, count)
-  let [pattern, stop_pattern] = braceless#get_pattern()
-  if empty(pattern)
-    return
-  endif
+  let pattern = braceless#get_pattern()
 
   if a:vmode != 'n'
     normal! gv
@@ -23,10 +20,10 @@ function! braceless#movement#block(direction, vmode, by_indent, count)
     let pat .= '\s*'
   endif
 
-  if pattern !~ '\\zs'
+  if pattern.jump !~ '\\zs'
     let pat .= '\zs'
   endif
-  let pat .= pattern
+  let pat .= pattern.jump
 
   let i = a:count
   while i > 0
