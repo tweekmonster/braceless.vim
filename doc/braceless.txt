@@ -1,0 +1,279 @@
+*braceless.txt*    *braceless*                                        Feb 12, 2016
+
+
+            _____ _____ _____ _____ _____ __    _____ _____ _____
+           | __  | __  |  _  |   __|   __|  |  |   __|   __|   __|
+           | __ -|    \|     |  |__:   __|  |__:   __:__   :__   |
+           :_____:__:__:__:__:_____:_____:_____:_____:_____:_____:
+
+
+CONTENTS                                                   *braceless-contents*
+==============================================================================
+
+  This documentation covers boring details, options, and mappings.  For
+  exciting animated GIFs and use case examples, head over to the repo:
+  https://github.com/tweekmonster/braceless.vim
+
+  Introduction              |braceless-intro|
+  Rationale                 |braceless-rationale|
+  Quick Start               |braceless-quickstart|
+  Text Object Taxonomy      |braceless-taxonomy|
+  Configuration             |braceless-config|
+  Features
+    Indentation             |braceless-indent|
+    Folding                 |braceless-folds|
+    Highlight               |braceless-highlight|
+    EasyMotion              |braceless-easymotion|
+  Misc
+    License                 |braceless-license|
+
+
+INTRODUCTION                                                  *braceless-intro*
+==============================================================================
+
+Braceless adds |text-objects| for languages that use the off-side rule
+(indentation) to define blocks of code.
+
+Python is the primary focus of this plugin, but there is some support for
+Coffee Script.  Without configuration, this plugin will be more or less like
+the vim-indent-object plugin in other file types.
+
+See |braceless-taxonomy| for information on what is considered a block.
+
+
+RATIONALE                                                 *braceless-rationale*
+==============================================================================
+
+Sometimes, I want to simply select/delete/replace entire blocks of Python
+code.  Using plugins that turn indentation into text objects fall short when
+encountering multi-line bits with varying indent levels, or docstrings that
+legally break the indentation.
+
+I started writing this plugin to deal with just that.  When the plugin started
+taking shape, it turned out that I could also add useful folding, and somewhat
+smarter auto-indent.  Also highlighting the block the cursor is on.  Oh, and
+why not throw in some EasyMotion support, too?  So, I slapped cool ASCII text
+art at the top of this thing and now you're sitting here reading about it.
+
+
+QUICK START                                              *braceless-quickstart*
+==============================================================================
+*BracelessEnable*
+
+By default, this plugin will do nothing besides indentation for Python.  This
+is because it will override key maps set by the built-in Python ftplugin.
+There is also the fact that almost every plugin for Python has its own opinion
+about what |[[| and |]]| means, this one not excluded.  The goal is to not
+break your existing workflow if you have such a Python plugin installed.  In
+addition to that, this plugin will work with other languages and it's up to
+you to enable it if you want to use it in something other than Python.
+
+If you want to just get started, add a line like this to your |vimrc| file:
+>
+  autocmd FileType python,coffee BracelessEnable +fold
+<
+If you have EasyMotion installed and would like to be able to move around by
+braceless text objects, add the following to your |vimrc| file:
+>
+  let g:braceless_enable_easymotion = 1
+<
+
+TEXT OBJECT TAXONOMY                                       *braceless-taxonomy*
+==============================================================================
+
+Python Example
+>
+   1. def fib(n):    # write Fibonacci series up to n
+   2.     """Print a Fibonacci series up to n.
+   3.
+   4. Some extra text to ruin the indent.
+   5. """
+   6.     a, b = 0, 1
+   7.     while a < n:
+   8.         print(a, end=' ')
+   9.         a, b = b, a+b
+  10.     print()
+  11.
+  12.
+  13. if spam \
+  14.      and eggs:
+  15.   print('ham')
+  16.   more_spam()
+
+<
+- Lines 1, 7, and 13 are block heads
+- Lines 1, 7, and 14 are block tails
+- Lines 2-10, 8-9, and 15-16 are block bodies
+
+The block head defines where the indentation starts.  The block tail defines
+where the body begins.  The body spans from the block tail, up to another
+block that is at the same or lower indent level as the block head.  When
+finding the end of the body, blank lines, strings, comments, and heredoc lines
+are ignored.
+
+
+Braceless works with other languages by only considering indent level.  Take
+HAML for example:
+>
+  1. #content
+  2.   .left.column
+  3.     %h2 Welcome to our site!
+  4.     %p= print_information
+  5.   .right.column
+  6.     = render :partial => "sidebar"
+<
+Every line is considered a potential block.  When it comes to selecting
+blocks, if a block appears to have no body, selection will use a lower indent
+level instead.  That means that if you are on line 4 and press `va:`, lines
+2-4 will be selected.
+
+While the primary focus of this plugin is for Python, it could be useful for
+other languages that rely heavily on indentation.
+
+
+CONFIGURATION                                                *braceless-config*
+==============================================================================
+
+All mappings displayed below are the default values.  You don't need to add
+them to your |vimrc| unless you want to change them.  If you want to disable a
+mapping, assign it an empty string.
+
+
+*g:braceless_block_key*
+
+This sets the text object key.  This gives you commands like `va:`, `ci:`,
+`di:`, etc.
+
+Default:
+>
+  let g:braceless_block_key = ':'
+<
+
+*g:braceless_jump_prev_key*
+*g:braceless_jump_next_key*
+
+By default, these let you move around using the |[[| and |]]| keys.  The following
+sequences are also mapped with these keys:
+
+  *g]*    Move forward to an increased indent level
+  *g[*    Move backward to a decreased indent level
+
+Default:
+>
+  let g:braceless_jump_prev_key = '['
+  let g:braceless_jump_next_key = ']'
+<
+
+*g:braceless_easymotion_prev_key*
+*g:braceless_easymotion_next_key*
+
+Keys used with EasyMotion.  By default, uses |g:braceless_jump_prev_key| and
+|g:braceless_jump_next_key|.  See: |braceless-easymotion|
+
+Default:
+>
+  let g:braceless_easymotion_prev_key = g:braceless_jump_prev_key
+  let g:braceless_easymotion_next_key = g:braceless_jump_next_key
+<
+
+INDENTATION                                                  *braceless-indent*
+==============================================================================
+
+There is not much to say about the indentation.  Braceless tries to be smart
+about how it suggests indentation based on blocks.  It also adds PEP8
+indentation for collection symbols (|(| |)|, |[| |]|, |{| |}|).  If you create
+two blank lines, indentation will drop one level.
+
+When performing auto-indent with |=|, docstrings will be aligned to where the
+string starts.  I'm still deciding whether or not they should be left alone.
+
+With that aside, auto-indent will not attempt to fix your syntactically
+incorrect indentation.  It is almost entirely based on the indent level of the
+previously found block without consideration for what that block actually is.
+
+
+FOLDING                                                       *braceless-folds*
+==============================================================================
+*+fold* *+fold-inner*
+As with indentation, folding is based on blocks.
+>
+  1. if spam \
+  2.      and eggs:
+  3.   print('ham')
+  4.   more_spam()
+<
+Using |+fold| in the |BracelessEnable| command, the fold will be on line 1.
+If you use |+fold-inner|, the fold will be on line 3.  The choice as to which
+is the best is up to you.
+
+
+HIGHLIGHT                                                 *braceless-highlight*
+==============================================================================
+*+highlight* *+highilght-cc* *+highlight-cc2* *BracelessIndent*
+
+Highlighting can be used to show you what Braceless considers to be the
+operative block.
+>
+  1. if spam \
+  2.      and eggs:
+  3.   print('ham')
+  4.   more_spam()
+<
+Using |+highlight| in the |BracelessEnable| command, a solid line will appear
+under the "i" on line 1.
+
+If you use |+highlight-cc| the |colorcolumn| will be used instead.  This will
+visually show the indent level, but for the entire height of the window.
+
+If you use |+highlight-cc2| the |colorcolumn| and standard highlighting will
+be enabled.  This is useful if you have a giant wall of code.
+
+The group name of the highlight column is |BracelessIndent| and is defaulted
+to:
+>
+  highlight BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
+<
+This uses an inverse style with a foreground color.  This is the only way for
+|+highlight-cc2| to work as described.  Otherwise, the |ColorColumn| style
+will override the background color.
+
+
+EASYMOTION                                               *braceless-easymotion*
+==============================================================================
+
+Braceless adds a few simple searches to EasyMotion.  While EasyMotion is
+invoked (default: <leader><leader>), |[| will search for blocks before the
+cursor, |]| will search for blocks after the cursor, and |:| will search for
+blocks in both directions.
+
+EasyMotion is a plugin worthy of the highest praise.  Do yourself a favor and
+install it if you haven't already.
+
+
+LICENSE                                                     *braceless-license*
+==============================================================================
+
+The MIT License
+Copyright (c) 2016 Tommy Allen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
