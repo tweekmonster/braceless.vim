@@ -69,10 +69,10 @@ function! s:init()
   vnoremap <silent> <Plug>(braceless-jump-prev-v-indent) :<C-u>call braceless#movement#block(-1, visualmode(), 1, v:count1)<cr>
   vnoremap <silent> <Plug>(braceless-jump-next-v-indent) :<C-u>call braceless#movement#block(1, visualmode(), 1, v:count1)<cr>
 
-  noremap <Plug>(braceless-jump-prev-n) :<C-u>call braceless#movement#block(-1, 'n', 0, v:count1)<cr>
-  noremap <Plug>(braceless-jump-next-n) :<C-u>call braceless#movement#block(1, 'n', 0, v:count1)<cr>
-  noremap <Plug>(braceless-jump-prev-n-indent) :<C-u>call braceless#movement#block(-1, 'n', 1, v:count1)<cr>
-  noremap <Plug>(braceless-jump-next-n-indent) :<C-u>call braceless#movement#block(1, 'n', 1, v:count1)<cr>
+  noremap <silent> <Plug>(braceless-jump-prev-n) :<C-u>call braceless#movement#block(-1, 'n', 0, v:count1)<cr>
+  noremap <silent> <Plug>(braceless-jump-next-n) :<C-u>call braceless#movement#block(1, 'n', 0, v:count1)<cr>
+  noremap <silent> <Plug>(braceless-jump-prev-n-indent) :<C-u>call braceless#movement#block(-1, 'n', 1, v:count1)<cr>
+  noremap <silent> <Plug>(braceless-jump-next-n-indent) :<C-u>call braceless#movement#block(1, 'n', 1, v:count1)<cr>
 
   highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
 
