@@ -4,7 +4,7 @@ function! braceless#fold#expr(line)
     return 0
   endif
 
-  let inner = get(b:, 'braceless_fold_inner', get(g:, 'braceless_fold_inner', 0))
+  let inner = get(b:, 'braceless_fold_inner', 0)
   let i_n = braceless#indent#level(block[2], 1)
 
   if a:line != block[0] && a:line == block[3]
@@ -17,10 +17,4 @@ function! braceless#fold#expr(line)
     return '<'.i_n
   endif
   return i_n
-endfunction
-
-
-function! braceless#fold#enable()
-  setlocal foldmethod=expr
-  setlocal foldexpr=braceless#fold#expr(v:lnum)
 endfunction

@@ -15,7 +15,7 @@ let g:braceless#key#em_prev = get(g:, 'braceless_easymotion_prev_key', g:bracele
 let g:braceless#key#em_next = get(g:, 'braceless_easymotion_next_key', g:braceless#key#jump_next)
 
 
-function! s:enable()
+function! s:enable(...)
   let b:braceless_enabled = 1
 
   execute 'vmap <buffer> i'.g:braceless#key#block.' <Plug>(braceless-i-v)'
@@ -41,6 +41,20 @@ function! s:enable()
     silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_prev.' :<C-u>call braceless#easymotion#blocks(1, 1)<cr>'
     silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#block.' :<C-u>call braceless#easymotion#blocks(1, 2)<cr>'
   endif
+
+  if a:0 < 1
+    return
+  endif
+
+  for opt in a:000
+    if opt =~ '+fold'
+      if opt == '+fold-inner'
+        let b:braceless_fold_inner = 1
+      endif
+      setlocal foldmethod=expr
+      setlocal foldexpr=braceless#fold#expr(v:lnum)
+    endif
+  endfor
 endfunction
 
 
@@ -62,10 +76,10 @@ function! s:init()
 
   highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
 
-  command! BracelessEnable :call s:enable()
-  command! BracelessHighlightToggle :call braceless#highlight#toggle()
-  command! BracelessHighlightEnable :call braceless#highlight#enable(1)
-  command! BracelessHighlightDisable :call braceless#highlight#enable(0)
+  command! -nargs=* BracelessEnable call s:enable(<f-args>)
+  command! BracelessHighlightToggle call braceless#highlight#toggle()
+  command! BracelessHighlightEnable call braceless#highlight#enable(1)
+  command! BracelessHighlightDisable call braceless#highlight#enable(0)
 endfunction
 
 call s:init()
