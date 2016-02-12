@@ -11,7 +11,6 @@ setlocal shiftwidth=4
 setlocal shiftround
 setlocal expandtab
 setlocal autoindent
-" setlocal indentkeys+=<:>,=elif,=except
 setlocal indentkeys=!^F,o,O,<:>,0),0],0},=elif,=except
 setlocal indentexpr=braceless#indent#python(v:lnum)
 
