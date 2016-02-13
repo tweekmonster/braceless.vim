@@ -339,6 +339,18 @@ function! braceless#get_pattern(...)
 endfunction
 
 
+" Define a pattern directly with reckless abandon.  If a:patterns is not a
+" dict, the a:filetype item will be removed from the cache.
+function! braceless#define_pattern(filetype, patterns)
+  if type(patterns) != 4 && has_key(s:pattern_cache, a:filetype)
+    unlet s:pattern_cache[a:filetype]
+    return
+  endif
+
+  let s:pattern_cache[a:filetype] = a:patterns
+endfunction
+
+
 " Gets the lines involved in a block without selecting it
 function! braceless#get_block_lines(line)
   let pattern = braceless#get_pattern()

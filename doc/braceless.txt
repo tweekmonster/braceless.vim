@@ -24,7 +24,9 @@ CONTENTS                                                   *braceless-contents*
     Folding                 |braceless-folds|
     Highlight               |braceless-highlight|
     EasyMotion              |braceless-easymotion|
-    Custom Patterns         |braceless-custom|
+  Customization
+    Other Languages         |braceless-custom|
+    Custom Patterns         |braceless-patterns|
   Misc
     License                 |braceless-license|
 
@@ -251,7 +253,43 @@ EasyMotion is a plugin worthy of the highest praise.  Do yourself a favor and
 install it if you haven't already.
 
 
-CUSTOM PATTERNS                                              *braceless-custom*
+OTHER LANGUAGES                                              *braceless-custom*
+==============================================================================
+
+If it's a language that uses indentation to define blocks, Braceless should be
+able to do for them what it does for Python.  Python support is not hard
+coded in the core functions, so you should be able to use to use them as
+needed to support your language of choice.
+
+There are a couple |autocmd|s and functions that can help get your
+customizations setup when Braceless is enabled.
+
+*BracelessInit*         Called when Braceless is enabled for the first time,
+                      giving you a chance to define patterns, or anything else
+                      that requires Braceless to be present.
+>
+  function! s:my_init()
+    " Only allow jumping to `if` statements.
+    let g:braceless#pattern#python = {'jump': '\%(if\)\_.\{-}:'}
+  endfunction
+
+  autocmd User BracelessInit call s:my_init()
+
+<
+*BracelessEnabled*      Called when Braceless is enabled in a buffer.  This is
+                      where you would setup custom indent, folding, key maps,
+                      and so on.
+>
+  function! s:my_enabled()
+    if &filetype == 'filetype'
+      ...
+    endif
+  endfunction
+
+  autocmd User BracelessEnabled call s:my_enabled()
+<
+
+CUSTOM PATTERNS                                            *braceless-patterns*
 ==============================================================================
 
 Braceless can be customized to match blocks in different languages.  Keep in
@@ -301,7 +339,6 @@ blocks:
   \   'jump': '\%(def\|class\)\_.\{-}:',
   \ }
 <
-
 
 LICENSE                                                     *braceless-license*
 ==============================================================================

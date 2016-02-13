@@ -5,6 +5,7 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
+let s:did_init = 0
 let g:loaded_braceless = 1
 
 
@@ -16,6 +17,11 @@ let g:braceless#key#em_next = get(g:, 'braceless_easymotion_next_key', g:bracele
 
 
 function! s:enable(...)
+  if !s:did_init
+    let s:did_init = 1
+    silent doautocmd <nomodeline> User BracelessInit
+  endif
+
   let b:braceless_enabled = 1
 
   if !empty(g:braceless#key#block)
@@ -95,6 +101,8 @@ function! s:enable(...)
       call braceless#highlight#enable(1)
     endif
   endfor
+
+  silent doautocmd <nomodeline> User BracelessEnabled
 endfunction
 
 
@@ -115,10 +123,10 @@ function! s:init()
   noremap <silent> <Plug>(braceless-jump-next-n-indent) :<C-u>call braceless#movement#block(1, 'n', 1, v:count1)<cr>
 
   highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
-
-  command! -nargs=* BracelessEnable call s:enable(<f-args>)
 endfunction
 
 call s:init()
+command! -nargs=* BracelessEnable call s:enable(<f-args>)
+
 let &cpo = s:cpo_save
 unlet s:cpo_save
