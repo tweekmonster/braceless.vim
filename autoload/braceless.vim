@@ -220,7 +220,7 @@ let s:docstr = '\%("""\|''''''\)'
 " Returns the start and end lines for docstrings
 " Couldn't get this to work reliably using searches.
 function! braceless#docstring(line, ...)
-  let l = prevnonblank(a:line)
+  let l = nextnonblank(a:line)
   let doc_head = 0
   let doc_tail = 0
 
@@ -240,7 +240,7 @@ function! braceless#docstring(line, ...)
     return [0, 0]
   endif
 
-  let l = nextnonblank(a:line)
+  let l = prevnonblank(a:line)
   while l <= bounds[1]
     if getline(l) =~ s:docstr && braceless#is_string(prevnonblank(l - 1))
       let doc_tail = l
