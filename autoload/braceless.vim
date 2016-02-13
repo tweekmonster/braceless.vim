@@ -76,10 +76,14 @@ endfunction
 
 
 " Build a pattern that is suitable for the current line and indent level
-function! s:build_pattern(line, base, motion, selected)
+function! s:build_pattern(line, base, motion, selected, ...)
   let pat = '^\s*'.a:base
   let flag = 'bc'
   let text = getline(a:line)
+  let ignore_empty = 0
+  if a:0 != 0
+    let ignore_empty = a:1
+  endif
 
   if a:selected
     let indent_delta = 0
@@ -132,7 +136,7 @@ function! s:build_pattern(line, base, motion, selected)
 
     " Even though we found the indent level of a block, make sure it has a
     " body.  If it doesn't, lower the indent level by one.
-    if getline(indent_line) =~ '^\s*'.a:base
+    if !ignore_empty && getline(indent_line) =~ '^\s*'.a:base
       let nextline = nextnonblank(indent_line + 1)
       let [_, indent_len2] = braceless#indent#space(nextline, indent_delta)
       if indent_len >= indent_len2
@@ -238,8 +242,13 @@ endfunction
 
 
 " Select an indent block using ~magic~
-function! braceless#select_block(pattern, motion, keymode, vmode, op, select)
+function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ...)
   let has_selection = 0
+  let ignore_empty = 0
+  if a:0 != 0
+    let ignore_empty = a:1
+  endif
+
   if a:op == ''
     let has_selection = s:is_selected()
   endif
@@ -250,7 +259,7 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select)
     return 0
   endif
 
-  let [pat, flag] = s:build_pattern(c_line, a:pattern.start, a:motion, has_selection)
+  let [pat, flag] = s:build_pattern(c_line, a:pattern.start, a:motion, has_selection, ignore_empty)
 
   let head = searchpos(pat, flag.'W')
   let tail = searchpos(pat, 'nceW')
@@ -352,11 +361,15 @@ endfunction
 
 
 " Gets the lines involved in a block without selecting it
-function! braceless#get_block_lines(line)
+function! braceless#get_block_lines(line, ...)
   let pattern = braceless#get_pattern()
   let saved = winsaveview()
+  let ignore_empty = 0
+  if a:0 != 0
+    let ignore_empty = a:1
+  endif
   call cursor(a:line, col([a:line, '$']))
-  let block = braceless#select_block(pattern, 'a', 'n', '', '', 0)
+  let block = braceless#select_block(pattern, 'a', 'n', '', '', 0, ignore_empty)
   call winrestview(saved)
   if type(block) != 3
     return

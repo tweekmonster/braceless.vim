@@ -86,7 +86,7 @@ function! braceless#indent#python(line)
   catch /cont/
   endtry
 
-  let block = braceless#get_block_lines(prev)
+  let block = braceless#get_block_lines(prev, 1)
   if block[2] == 0
     return -1
   endif
