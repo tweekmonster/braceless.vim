@@ -99,7 +99,7 @@ function! braceless#indent#python(line)
     return -1
   endif
 
-  if a:line - prev > 2 || a:line == block[2] || a:line == block[3]
+  if a:line - prev > 1 || a:line == block[2] || a:line == block[3]
     return braceless#indent#space(block[0], 0)[1]
   endif
   return braceless#indent#space(block[0], 1)[1]
