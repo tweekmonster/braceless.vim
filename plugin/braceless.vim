@@ -102,7 +102,7 @@ function! s:enable(...)
     endif
   endfor
 
-  silent doautocmd <nomodeline> User BracelessEnabled
+  execute 'silent doautocmd <nomodeline> User BracelessEnabled_'.&l:filetype
 endfunction
 
 
@@ -124,6 +124,11 @@ function! s:init()
 
   highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
 endfunction
+
+augroup braceless_plugin
+  autocmd!
+  autocmd User BracelessEnabled_python call braceless#python#init()
+augroup END
 
 call s:init()
 command! -nargs=* BracelessEnable call s:enable(<f-args>)

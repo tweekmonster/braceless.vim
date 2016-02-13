@@ -264,9 +264,10 @@ needed to support your language of choice.
 There are a couple |autocmd|s and functions that can help get your
 customizations setup when Braceless is enabled.
 
-*BracelessInit*         Called when Braceless is enabled for the first time,
-                      giving you a chance to define patterns, or anything else
-                      that requires Braceless to be present.
+*BracelessInit*                   Called when Braceless is enabled for the
+                                first time, giving you a chance to define
+                                patterns, or anything else that requires
+                                Braceless to be present.
 >
   function! s:my_init()
     " Only allow jumping to `if` statements.
@@ -276,17 +277,15 @@ customizations setup when Braceless is enabled.
   autocmd User BracelessInit call s:my_init()
 
 <
-*BracelessEnabled*      Called when Braceless is enabled in a buffer.  This is
-                      where you would setup custom indent, folding, key maps,
-                      and so on.
+*BracelessEnabled_<filetype>*     Called when Braceless is enabled in a
+                                buffer.  This is where you would setup custom
+                                indent, folding, key maps, and so on.
 >
   function! s:my_enabled()
-    if &filetype == 'filetype'
-      ...
-    endif
+    ...
   endfunction
 
-  autocmd User BracelessEnabled call s:my_enabled()
+  autocmd User BracelessEnabled_haml call s:my_enabled()
 <
 
 CUSTOM PATTERNS                                            *braceless-patterns*
