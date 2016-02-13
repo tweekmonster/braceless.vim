@@ -69,7 +69,7 @@ function! s:mark_column(line1, line2, column)
     " For Vim < 7.4.330
     " Based on profiling, matchaddpos() is faster despite the loop to add
     " multiple positions due to the 8 item limit.
-    let first_line = nextnonblank(a:line1 + 1) - 1
+    let first_line = max([1, nextnonblank(a:line1 + 1) - 1])
     let last_line = prevnonblank(a:line2) + 1
     let id = matchadd('BracelessIndent', '\%(\%>'.first_line.'l\&\%<'.last_line.'l\)\&\%'.(a:column+1).'v', 90)
     call add(matches, id)
