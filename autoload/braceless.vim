@@ -305,11 +305,14 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ..
     endif
   endif
 
-  if !empty(a:vmode) && a:select == 1 && (a:keymode == 'v' || a:op != '')
+  " TODO: Revisit this and make sure none of this is superfluous or just bad
+  if !empty(a:vmode) && a:select == 1 && a:keymode == 'v'
+    exec 'normal!' a:vmode
+  elseif a:op != ''
     if a:op ==? 'y'
       normal! V
     else
-      exec 'normal!' a:vmode
+      normal! v
     endif
   endif
 
