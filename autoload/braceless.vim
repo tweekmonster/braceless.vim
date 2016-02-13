@@ -186,7 +186,7 @@ endfunction
 
 
 function! braceless#prevnonstring(line)
-  let l = a:line
+  let l = prevnonblank(a:line)
   while l > 0
     if !braceless#is_string(l)
       return l
