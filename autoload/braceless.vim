@@ -199,7 +199,7 @@ endfunction
 
 
 function! braceless#is_string(line, ...)
-  return synIDattr(synID(a:line, a:0 ? a:1 : 1, 1), 'name') =~ '\(Comment\|Todo\|String\|Heredoc\)$'
+  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~ '\(Comment\|Todo\|String\|Heredoc\)$'
 endfunction
 
 
