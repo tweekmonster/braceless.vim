@@ -85,9 +85,23 @@ function! s:build_pattern(line, base, motion, selected, ...)
     let ignore_empty = a:1
   endif
 
+  " Get a line with a lower indent level than the current line to figure out
+  " whether or not this line can actually determine the parent block.
+  let [indent_char, indent_len] = braceless#indent#space(a:line, -1)
+  let prev_unindent = search('^'.indent_char.'\{-,'.indent_len.'}\S', 'nbW')
+  if indent_len != 0 && prev_unindent != 0 && getline(prev_unindent) !~ '^\s*'.a:base
+    " The current line is indented under a non-block line.  This might mean
+    " line continuations, lists, or something.  Try again.
+    call cursor(prev_unindent, col('.'))
+
+    " Though this is recursive, it'll stop before it hits the first column.
+    " Performance is a consideration, but if unexpected indentation is that
+    " deep, there are more pressing matters that the user is facing.
+    return s:build_pattern(prev_unindent, a:base, a:motion, a:selected, ignore_empty)
+  endif
+
   if a:selected
     let indent_delta = 0
-    let line = a:line
     if a:motion ==# 'i'
       " Moving inward, include current line
       let flag = 'c'
@@ -96,7 +110,7 @@ function! s:build_pattern(line, base, motion, selected, ...)
       " Moving outward, don't include current line
       let flag = 'b'
     endif
-    let [indent_char, indent_len] = braceless#indent#space(line, indent_delta - 1)
+    let [indent_char, indent_len] = braceless#indent#space(a:line, indent_delta - 1)
     let pat = '^'.indent_char.'\{,'.indent_len.'}'
   else
     let indent_delta = 0
