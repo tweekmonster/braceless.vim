@@ -44,25 +44,36 @@ function! s:mark_column(line1, line2, column)
   endif
 
   let matches = []
-  for i in range(a:line1 + 1, a:line2, 8)
-    let group = []
-    for j in range(0, 7)
-      let c_line = i + j
 
-      if c_line > a:line2
-        break
-      endif
+  if exists('*matchaddpos')
+    for i in range(a:line1 + 1, a:line2, 8)
+      let group = []
+      for j in range(0, 7)
+        let c_line = i + j
 
-      if a:column == 0 && col([c_line, '$']) < 2
-        continue
-      endif
+        if c_line > a:line2
+          break
+        endif
 
-      call add(group, [c_line, a:column + 1, 1])
+        if a:column == 0 && col([c_line, '$']) < 2
+          continue
+        endif
+
+        call add(group, [c_line, a:column + 1, 1])
+      endfor
+
+      let id = matchaddpos('BracelessIndent', group, 90)
+      call add(matches, id)
     endfor
-
-    let id = matchaddpos('BracelessIndent', group, 90)
+  else
+    " For Vim < 7.4.330
+    " Based on profiling, matchaddpos() is faster despite the loop to add
+    " multiple positions due to the 8 item limit.
+    let first_line = nextnonblank(a:line1 + 1) - 1
+    let last_line = prevnonblank(a:line2) + 1
+    let id = matchadd('BracelessIndent', '\%(\%>'.first_line.'l\&\%<'.last_line.'l\)\&\%'.(a:column+1).'v', 90)
     call add(matches, id)
-  endfor
+  endif
 
   let b:braceless.highlight_column = matches
 endfunction
