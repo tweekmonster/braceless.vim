@@ -37,7 +37,7 @@ function! s:indent_non_blocks(line, prev)
   " Try collection pairs
   let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW', s:str_skip)
   if col_head[0] != a:line && col_head[0] > 0
-    let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'nW', s:str_skip)
+    let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW', s:str_skip)
     if col_head[0] == col_tail[0]
       " All on the same line
       throw 'cont'
@@ -51,11 +51,19 @@ function! s:indent_non_blocks(line, prev)
     " The pair start is at the end of the line, indent past the pair start
     " line.
     let indent_delta = 1
+
+    " TODO: Call out to a language specific function to decide what to do with
+    " with indents between col_head and col_tail.
+    " Also need to look into overriding delimit mate's behavior on block head
+    " lines when `delimitMate_expand_cr = 2` is set.
+
+    " Different indentation if we're on the line with the tail
     if a:line == col_tail[0]
       if getline(col_tail[0]) =~ '^\s*\%('.s:collection[1].'\)\+\s*$'
         let indent_delta = 0
       endif
     endif
+
     return braceless#indent#space(col_head[0], indent_delta)[1]
   endif
 
