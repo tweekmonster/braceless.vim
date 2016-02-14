@@ -198,8 +198,11 @@ function! s:best_indent(line)
 endfunction
 
 
+let s:syn_string = '\(String\|Heredoc\)$'
+
 function! braceless#is_string(line, ...)
-  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~ '\(Comment\|Todo\|String\|Heredoc\)$'
+  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~ s:syn_string
+        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~ s:syn_string)
 endfunction
 
 
