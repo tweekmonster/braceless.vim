@@ -12,7 +12,7 @@ setlocal shiftround
 setlocal expandtab
 setlocal autoindent
 setlocal indentkeys=!^F,o,O,<:>,0),0],0},=elif,=except
-setlocal indentexpr=braceless#indent#python(v:lnum)
+setlocal indentexpr=braceless#indent#expr(v:lnum)
 
 
 let &cpo = s:cpo_save

@@ -182,17 +182,20 @@ Default:
 INDENTATION                                                  *braceless-indent*
 ==============================================================================
 
-There is not much to say about the indentation.  Braceless tries to be smart
-about how it suggests indentation based on blocks.  It also adds PEP8
-indentation for collection symbols (|(| |)|, |[| |]|, |{| |}|).  If you create
-two blank lines, indentation will drop one level.
+There is not much to say about the general indentation Braceless performs.  It
+tries to be smart about how it suggests indentation based on blocks.  It also
+adds PEP 8 indentation for collection symbols (|(| |)|, |[| |]|, |{| |}|).  If
+you create two blank lines, indentation will drop one level.
 
 When performing auto-indent with |=|, docstrings will be aligned to where the
 string starts.  I'm still deciding whether or not they should be left alone.
 
-With that aside, auto-indent will not attempt to fix your syntactically
-incorrect indentation.  It is almost entirely based on the indent level of the
-previously found block without consideration for what that block actually is.
+Braceless takes some syntactic clues into account when performing auto
+indentation in Python, but without clearly defined boundaries for blocks, it's
+difficult to do accurately.  With that said, it does work fairly well.
+
+tl;dr:  auto-indent will not go out of its way to fix your syntactically
+incorrect indentation.
 
 
 FOLDING                                                       *braceless-folds*

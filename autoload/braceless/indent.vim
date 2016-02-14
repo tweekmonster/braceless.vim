@@ -28,12 +28,19 @@ endfunction
 
 
 " Indent
+let s:handlers = {}
 let s:str_skip = "synIDattr(synID(line('.'), col('.'), 1), 'name')"
                   \." =~ '\\(Comment\\|Todo\\|String\\)$'"
 let s:collection = ['(\|{\|\[', ')\|}\|\]']
 
 
-function! s:indent_non_blocks(line, prev)
+function! braceless#indent#add_handler(filetype, handlers)
+  let s:handlers[a:filetype] = a:handlers
+endfunction
+
+
+function! braceless#indent#non_block(line, prev)
+  let handler = get(s:handlers, &l:filetype, {})
   " Try collection pairs
   let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW', s:str_skip)
   if col_head[0] != a:line && col_head[0] > 0
@@ -43,26 +50,29 @@ function! s:indent_non_blocks(line, prev)
       throw 'cont'
     endif
 
-    " If the line doesn't end with a pair start, line up with it
-    if getline(col_head[0]) !~ '\%('.s:collection[0].'\)\s*$'
-      return col_head[1]
-    endif
-
     " The pair start is at the end of the line, indent past the pair start
     " line.
     let indent_delta = 1
 
-    " TODO: Call out to a language specific function to decide what to do with
-    " with indents between col_head and col_tail.
-    " Also need to look into overriding delimit mate's behavior on block head
-    " lines when `delimitMate_expand_cr = 2` is set.
-
-    " Different indentation if we're on the line with the tail
-    if a:line == col_tail[0]
-      if getline(col_tail[0]) =~ '^\s*\%('.s:collection[1].'\)\+\s*$'
-        let indent_delta = 0
+    try
+      if has_key(handler, 'collection')
+        return handler.collection(a:line, col_head, col_tail)
+      else
+        throw 'cont'
       endif
-    endif
+    catch /cont/
+      " If the line doesn't end with a pair start, line up with it
+      if getline(col_head[0]) !~ '\%('.s:collection[0].'\)\s*$'
+        return col_head[1]
+      endif
+
+      " Different indentation if we're on the line with the tail
+      if a:line == col_tail[0]
+        if getline(col_tail[0]) =~ '^\s*\%('.s:collection[1].'\)\+\s*$'
+          let indent_delta = 0
+        endif
+      endif
+    endtry
 
     return braceless#indent#space(col_head[0], indent_delta)[1]
   endif
@@ -70,37 +80,54 @@ function! s:indent_non_blocks(line, prev)
   " Try docstrings
   if braceless#is_string(a:prev) || getline(a:line) =~ '\%("""\|''''''\)'
     let docstr = braceless#docstring(a:line)
-    if docstr[0] != 0
-      if a:line == docstr[0] || a:line == docstr[1]
-        let pattern = braceless#get_pattern()
-        let block = search('^\s*'.pattern.start, 'nbW')
-        return braceless#indent#space(block, 1)[1]
+    try
+      if has_key(handler, 'docstring')
+        return handler.docstring(a:line, docstr)
+      else
+        throw 'cont'
       endif
+    catch /cont/
+      if docstr[0] != 0
+        if a:line == docstr[0] || a:line == docstr[1]
+          let pattern = braceless#get_pattern()
+          let block = search('^\s*'.pattern.start, 'nbW')
+          return braceless#indent#space(block, 1)[1]
+        endif
 
-      let prev = prevnonblank(a:line - 1)
-      return braceless#indent#space(prev, 0)[1]
-    endif
+        let prev = prevnonblank(a:line - 1)
+        return braceless#indent#space(prev, 0)[1]
+      endif
+    endtry
   endif
 
   throw 'cont'
 endfunction
 
 
-function! braceless#indent#python(line)
+function! braceless#indent#expr(line)
   let prev = prevnonblank(a:line)
 
   try
-    return s:indent_non_blocks(a:line, prev)
+    return braceless#indent#non_block(a:line, prev)
   catch /cont/
   endtry
 
+  let handler = get(s:handlers, &l:filetype, {})
   let block = braceless#get_block_lines(prev, 1)
   if block[2] == 0
     return -1
   endif
 
-  if a:line - prev > 1 || a:line == block[2] || a:line == block[3]
-    return braceless#indent#space(block[0], 0)[1]
-  endif
-  return braceless#indent#space(block[0], 1)[1]
+  try
+    if has_key(handler, 'block')
+      return handler.block(a:line, block)
+    else
+      throw 'cont'
+    endif
+  catch /cont/
+    if a:line - prev > 1 || a:line == block[2] || a:line == block[3]
+      return braceless#indent#space(block[2], 0)[1]
+    endif
+    return braceless#indent#space(block[2], 1)[1]
+  endtry
 endfunction
