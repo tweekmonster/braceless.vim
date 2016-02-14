@@ -28,16 +28,15 @@ Execute (move to last block, then jump to first):
 
 Do (delete body):
 =================
-  di:
+  diP
 
 Expect python (func sig without body):
 ======================================
   def example():
-      
 
 Do (change body):
 =================
-  ci:pass
+  ciPpass
 
 Expect python (func sig with replaced body):
 ============================================
@@ -46,7 +45,7 @@ Expect python (func sig with replaced body):
 
 Do (visually replace body):
 =========================
-  vi:spass
+  viPspass
 
 Expect python (func sig with replaced body):
 ============================================
@@ -55,7 +54,7 @@ Expect python (func sig with replaced body):
 
 Do (indent body):
 =================
-  >i:
+  >iP
 
 Expect python (over indented body):
 ===================================
@@ -75,7 +74,7 @@ Expect python (over indented body):
 
 Do (unindent body):
 ===================
-  <i:
+  <iP
 
 Expect python (under indented body):
 ====================================
@@ -95,7 +94,7 @@ Expect python (under indented body):
 
 Do (delete function):
 =====================
-  da:ix
+  daPix
 
 Expect python (entire function deleted):
 ========================================
@@ -111,9 +110,34 @@ Given python (docstring with under indented tail):
 
 Do (delete body):
 =================
-  di:
+  diP
 
 Expect python (func sig with empty body):
 =========================================
   def example():
-      
+
+
+Do (select body and change):
+============================
+  viPcpass
+
+Expect python (body replaced with pass):
+========================================
+  def example():
+      pass
+
+Do (select body and substitue):
+  viPSpass
+
+Expect python (body replaced with pass):
+========================================
+  def example():
+      pass
+
+Do (select body and delete):
+============================
+  viPd
+
+Expect python (body deleted):
+=============================
+  def example():
