@@ -141,3 +141,56 @@ Do (select body and delete):
 Expect python (body deleted):
 =============================
   def example():
+
+Given python (block without body followed by blocks):
+=====================================================
+  def example():
+  if True:
+      pass
+  else:
+      pass
+
+  def example():
+      pass
+
+Do (indent content below empty block):
+======================================
+  >iP
+
+Expect python (content below first content indented):
+=====================================================
+  def example():
+      if True:
+          pass
+      else:
+          pass
+
+  def example():
+      pass
+
+
+Given python (function without body followed by blocks):
+========================================================
+  def example():
+  def example():
+      if True:
+          pass
+  def example():
+      pass
+
+  def example():
+      pass
+
+Do (indent contingious content, unindent second inner function):
+  >iP3]]<aP
+
+Expect python (third function returned to first column):
+  def example():
+      def example():
+          if True:
+              pass
+  def example():
+      pass
+
+  def example():
+      pass

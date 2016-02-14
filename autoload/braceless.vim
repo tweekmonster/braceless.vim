@@ -75,6 +75,24 @@ function! s:get_block_end(start, pattern)
 endfunction
 
 
+" Special case block.  Finds a line that followed by a blank line.
+function! s:get_block_until_blank(start)
+  let end = line('$')
+  let start = min([end, a:start])
+  let lastline = end
+
+  while start > 0 && start <= end
+    if getline(start + 1) =~ '^$' && !braceless#is_string(start)
+      let lastline = braceless#prevnonstring(start)
+      break
+    endif
+    let start = nextnonblank(start + 1)
+  endwhile
+
+  return lastline
+endfunction
+
+
 " Build a pattern that is suitable for the current line and indent level
 function! s:build_pattern(line, base, motion, selected, ...)
   let pat = '^\s*'.a:base
@@ -268,6 +286,8 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ..
 
   if a:op == ''
     let has_selection = s:is_selected()
+  elseif a:op == '<' || a:op == '>'
+    let ignore_empty = 1
   endif
 
   let saved_view = winsaveview()
@@ -301,7 +321,13 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ..
 
   if a:motion ==# 'i'
     if lastline < startline
-      call cursor(tail[0], 0)
+      if a:op == '<' || a:op == '>'
+        let lastline = s:get_block_until_blank(startline)
+        let [indent_char, indent_len] = braceless#indent#space(head[0], 1)
+        call cursor(tail[0] + 1, indent_len + 1)
+      else
+        call cursor(tail[0], 0)
+      endif
     else
       let [indent_char, indent_len] = braceless#indent#space(head[0], 1)
       call cursor(tail[0] + 1, indent_len + 1)
@@ -309,7 +335,6 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ..
   endif
 
   " TODO: Revisit this and make sure none of this is superfluous or just bad
-  echomsg a:op
   if a:op != '' || (!empty(a:vmode) && a:select == 1 && a:keymode == 'v')
     normal! V
   endif
