@@ -9,7 +9,7 @@ let s:did_init = 0
 let g:loaded_braceless = 1
 
 
-let g:braceless#key#block = get(g:, 'braceless_block_key', ':')
+let g:braceless#key#block = get(g:, 'braceless_block_key', 'P')
 let g:braceless#key#jump_prev = get(g:, 'braceless_jump_prev_key', '[')
 let g:braceless#key#jump_next = get(g:, 'braceless_jump_next_key', ']')
 let g:braceless#key#em_prev = get(g:, 'braceless_easymotion_prev_key', g:braceless#key#jump_prev)

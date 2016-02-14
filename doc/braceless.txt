@@ -127,7 +127,7 @@ HAML for example:
 <
 Every line is considered a potential block.  When it comes to selecting
 blocks, if a block appears to have no body, selection will use a lower indent
-level instead.  That means that if you are on line 4 and press `va:`, lines
+level instead.  That means that if you are on line 4 and press `vaP`, lines
 2-4 will be selected.
 
 While the primary focus of this plugin is for Python, it could be useful for
@@ -144,12 +144,12 @@ mapping, assign it an empty string.
 
 *g:braceless_block_key*
 
-This sets the text object key.  This gives you commands like `va:`, `ci:`,
-`di:`, etc.
+This sets the text object key.  This gives you commands like `vaP`, `ciP`,
+`diP`, etc.
 
 Default:
 >
-  let g:braceless_block_key = ':'
+  let g:braceless_block_key = 'P'
 <
 
 *g:braceless_jump_prev_key*
@@ -249,7 +249,7 @@ EASYMOTION                                               *braceless-easymotion*
 
 Braceless adds a few simple searches to EasyMotion.  While EasyMotion is
 invoked (default: <leader><leader>), |[| will search for blocks before the
-cursor, |]| will search for blocks after the cursor, and |:| will search for
+cursor, |]| will search for blocks after the cursor, and |P| will search for
 blocks in both directions.
 
 EasyMotion is a plugin worthy of the highest praise.  Do yourself a favor and
