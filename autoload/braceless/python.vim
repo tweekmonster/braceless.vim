@@ -48,6 +48,9 @@ function! s:indent_handler.collection(line, col_head, col_tail)
   call cursor(pos)
 
   if a:line == a:col_tail[0] && a:col_head[0] != a:col_tail[0]
+    if getline(a:col_head[0]) !~ '\%((\|{\|\[\)\s*$'
+      return a:col_head[1]
+    endif
     return braceless#indent#space(a:col_head[0], 0)[1]
   endif
 
