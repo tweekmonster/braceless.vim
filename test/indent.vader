@@ -1,0 +1,130 @@
+Given python (func sig):
+======================
+  def example():
+
+Execute (verify indentexpr):
+============================
+  AssertEqual 'braceless#indent#expr(v:lnum)', &indentexpr
+
+Do (insert line autoindent):
+============================
+  opass
+
+Expect python (new indented line):
+==================================
+  def example():
+      pass
+
+Given python (print statement):
+==========================
+  print('hello')
+
+Do (add string below):
+==========================
+  $i\<cr>', world!'
+
+Expect python (new string directly below previous string):
+==========================================================
+  print('hello'
+        ', world!')
+
+Do (move argument to next line):
+================================
+  f'i\<cr>
+
+Expect python (argument and end paren indented 1 level below print statement):
+==============================================================================
+  print(
+      'hello')
+
+Given python (dict with nested dicts and tuple):
+================================================
+  thangs = {
+  'foo': 'bar',
+  'baz': 'spam',
+  'eggs': (
+  'fried',
+  'scrambled',
+  'boiled',
+  'over easy',
+  ),
+  'into the hole': {
+  'deeper': {
+  'and': {
+  'deeper': {
+  'we': 'go',
+  },
+  },
+  },
+  },
+  }
+
+Do (autoindent dict):
+=====================
+  ggVG=
+
+Expect python (properly formatted dict):
+========================================
+  thangs = {
+      'foo': 'bar',
+      'baz': 'spam',
+      'eggs': (
+          'fried',
+          'scrambled',
+          'boiled',
+          'over easy',
+      ),
+      'into the hole': {
+          'deeper': {
+              'and': {
+                  'deeper': {
+                      'we': 'go',
+                  },
+              },
+          },
+      },
+  }
+
+Given python (func sig):
+========================
+  def example():
+
+Do (add statement below func sig):
+==================================
+  A\<cr>pass
+
+Expect python (statement indented past func sig):
+=================================================
+  def example():
+      pass
+
+Do (unindent after adding a blank line):
+========================================
+  A\<cr>\<cr>pass
+
+Expect python (statement on the same indent level as func sig):
+===============================================================
+  def example():
+
+  pass
+
+Do (insert try+except without bodies):
+======================================
+  A\<cr>try:\<cr>except:
+
+Expect python (except block indented past try):
+===============================================
+  def example():
+      try:
+          except:
+
+Do (insert try+except with try body):
+=====================================
+  A\<cr>try:\<cr>pass\<cr>except:
+
+Expect python (except block on same indent level as try):
+=========================================================
+  def example():
+      try:
+          pass
+      except:

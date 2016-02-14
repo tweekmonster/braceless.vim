@@ -1,0 +1,35 @@
+Before (setup autocmd):
+  function! s:init()
+    let g:did_init = 1
+  endfunction
+
+  function! s:enabled_python()
+    let g:did_enable_python = 1
+  endfunction
+
+  function! s:enabled_yaml()
+    let g:did_enable_yaml = 1
+  endfunction
+
+  autocmd User BracelessInit call <SID>init()
+  autocmd User BracelessEnabled_python call <SID>enabled_python()
+  autocmd User BracelessEnabled_yaml call <SID>enabled_yaml()
+  autocmd FileType python,yaml BracelessEnable
+
+After (autocmd):
+  silent! unlet g:did_enable_python
+  silent! unlet g:did_enable_yaml
+
+Execute (autocmd no init without enable):
+  AssertEqual 0, get(g:, 'did_init', 0), 'init'
+
+Execute (enable python):
+  set filetype=python
+  AssertEqual 1, get(g:, 'did_init', 0), 'init'
+  AssertEqual 1, get(g:, 'did_enable_python', 0), 'enable python'
+  AssertEqual 0, get(g:, 'did_enable_yaml', 0), 'enable yaml'
+
+Execute (enable yaml):
+  set filetype=yaml
+  AssertEqual 0, get(g:, 'did_enable_python', 0), 'enable python'
+  AssertEqual 1, get(g:, 'did_enable_yaml', 0), 'enable yaml'

@@ -1,0 +1,43 @@
+filetype off
+
+set rtp=./.test,$VIMRUNTIME
+call plug#begin('./.test/plugins')
+
+Plug 'junegunn/vader.vim'
+Plug 'Lokaltog/vim-easymotion'
+Plug 'Raimondi/delimitMate'
+
+" This is Braceless
+set rtp+=./
+
+call plug#end()
+
+filetype plugin indent on
+
+augroup ssshhhhhh
+  autocmd VimEnter * set visualbell t_vb=
+  autocmd GUIEnter * set visualbell t_vb=
+augroup END
+
+set nocompatible
+syntax on
+set number
+set background=dark
+set colorcolumn=80
+set showcmd
+set lazyredraw
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set backspace=2
+set nofoldenable
+set foldmethod=syntax
+set foldlevelstart=10
+set foldnestmax=10
+set ttimeoutlen=0
+
+
+let mapleader=","
+
+autocmd Filetype python,coffee BracelessEnable +fold +highlight

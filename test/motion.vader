@@ -1,0 +1,119 @@
+Given python (multi block script):
+==================================
+  def example():
+      """Doc string
+      """
+      # There is a docstring above
+      if True: pass
+
+      if True \
+              and True:
+          print('so true')
+
+          with something:
+              print('something')
+
+Execute (move to last block, then jump to first):
+=================================================
+  normal ]]
+  AssertEqual [1, 14], getpos('.')[1:2]
+  normal ]]
+  AssertEqual [5, 12], getpos('.')[1:2]
+  normal ]]
+  AssertEqual [8, 21], getpos('.')[1:2]
+  normal ]]
+  AssertEqual [11, 23], getpos('.')[1:2]
+  normal 3[[
+  AssertEqual [1, 14], getpos('.')[1:2]
+
+Do (delete body):
+=================
+  di:
+
+Expect python (func sig without body):
+======================================
+  def example():
+      
+
+Do (change body):
+=================
+  ci:pass
+
+Expect python (func sig with replaced body):
+============================================
+  def example():
+      pass
+
+Do (visually replace body):
+=========================
+  vi:spass
+
+Expect python (func sig with replaced body):
+============================================
+  def example():
+      pass
+
+Do (indent body):
+=================
+  >i:
+
+Expect python (over indented body):
+===================================
+  def example():
+          """Doc string
+          """
+          # There is a docstring above
+          if True: pass
+
+          if True \
+                  and True:
+              print('so true')
+
+              with something:
+                  print('something')
+
+
+Do (unindent body):
+===================
+  <i:
+
+Expect python (under indented body):
+====================================
+  def example():
+  """Doc string
+  """
+  # There is a docstring above
+  if True: pass
+
+  if True \
+          and True:
+      print('so true')
+
+      with something:
+          print('something')
+
+
+Do (delete function):
+=====================
+  da:ix
+
+Expect python (entire function deleted):
+========================================
+  x
+
+Given python (docstring with under indented tail):
+==================================================
+  def example():
+      test = """
+  hi
+  """
+      print('hello')
+
+Do (delete body):
+=================
+  di:
+
+Expect python (func sig with empty body):
+=========================================
+  def example():
+      

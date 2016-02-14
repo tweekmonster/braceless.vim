@@ -1,0 +1,59 @@
+Before (delimitMate config):
+============================
+  let g:delimitMate_expand_cr = 2
+  DelimitMateReload
+
+Given python (print statement):
+===============================
+  print('print')
+
+Do (argument end cr):
+=====================
+  2f'a\<cr>
+
+Expect python (close paren directly under first argument):
+==========================================================
+  print('print'
+        )
+
+Given python (dict):
+====================
+  {}
+
+Do (expand dict):
+=================
+  a\<cr>x
+
+Expect python (dict expanded to 3 lines):
+=========================================
+  {
+      x
+  }
+
+Given python (tuple):
+=====================
+  ()
+
+Do (expand tuple):
+==================
+  a\<cr>x
+
+Expect python (tuple expanded to 3 lines):
+==========================================
+  (
+      x
+  )
+
+Given python (list):
+====================
+  []
+
+Do (expand list):
+=================
+  a\<cr>x
+
+Expect python (list expanded to 3 lines):
+=========================================
+  [
+      x
+  ]
