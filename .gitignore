@@ -1,4 +1,5 @@
 /doc/tags
+/.test
 
 ### Vim ###
 [._]*.s[a-w][a-z]
