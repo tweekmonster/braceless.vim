@@ -39,5 +39,3 @@ set ttimeoutlen=0
 
 
 let mapleader=","
-
-autocmd Filetype python,coffee BracelessEnable +fold +highlight

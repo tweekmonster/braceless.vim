@@ -1,5 +1,6 @@
 Before (delimitMate config):
 ============================
+  BracelessEnable +indent +fold +highlight
   let g:delimitMate_expand_cr = 2
   DelimitMateReload
 

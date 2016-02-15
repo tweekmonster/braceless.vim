@@ -145,4 +145,8 @@ function! braceless#python#init()
   let s:pattern = '^\s*'.(braceless#get_pattern().start)
   call braceless#indent#add_handler('python', s:indent_handler)
   autocmd User delimitMate_map call s:check_delimitMate()
+
+  if &l:indentexpr =~ 'braceless#'
+    setlocal indentkeys=!^F,o,O,<:>,0),0],0},=elif,=except
+  endif
 endfunction

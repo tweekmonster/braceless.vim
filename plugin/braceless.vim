@@ -77,6 +77,10 @@ function! s:enable(...)
     let &l:cc = b:braceless.orig_cc
   endif
 
+  if has_key(b:braceless, 'indentexpr')
+    let &l:indentexpr = b:braceless.indentexpr
+  endif
+
   for opt in a:000
     if opt =~ '^+fold'
       if opt[-6:] == '-inner'
@@ -99,6 +103,9 @@ function! s:enable(...)
         let b:braceless.highlight_cc = 0
       endif
       call braceless#highlight#enable(1)
+    elseif opt =~ '^+indent'
+      let b:braceless.indentexpr = &l:indentexpr
+      setlocal indentexpr=braceless#indent#expr(v:lnum)
     endif
   endfor
 

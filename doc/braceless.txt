@@ -26,6 +26,7 @@ CONTENTS                                                   *braceless-contents*
     EasyMotion              |braceless-easymotion|
   Customization
     Other Languages         |braceless-custom|
+    Custom Indent           |braceless-custom-indent|
     Custom Patterns         |braceless-patterns|
   Misc
     License                 |braceless-license|
@@ -63,22 +64,23 @@ QUICK START                                              *braceless-quickstart*
 ==============================================================================
 *BracelessEnable*
 
-By default, this plugin will do nothing besides indentation for Python.  This
-is because it will override key maps set by the built-in Python ftplugin.
-There is also the fact that almost every plugin for Python has its own opinion
-about what |[[| and |]]| means, this one not excluded.  The goal is to not
-break your existing workflow if you have such a Python plugin installed.  In
-addition to that, this plugin will work with other languages and it's up to
-you to enable it if you want to use it in something other than Python.
+By default, this plugin will do nothing.  This is because it will override key
+maps set by the built-in Python ftplugin.  There is also the fact that almost
+every plugin for Python has its own opinion about what |[[| and |]]| means,
+this one not excluded.  The goal is to not break your existing workflow if you
+have such a Python plugin installed.  In addition to that, this plugin will
+work with other languages and it's up to you to enable it if you want to use
+it in something other than Python.
 
 If you want to just get started, add a line like this to your |vimrc| file:
 >
-  autocmd FileType python,coffee BracelessEnable +fold
+  autocmd FileType python,coffee BracelessEnable +indent
 <
-If you have EasyMotion installed and would like to be able to move around by
-braceless text objects, add the following to your |vimrc| file:
+EasyMotion support is enabled by default and allows you to move around by
+braceless text objects.  If you want this feature to be disabled, add the
+following to your |vimrc| file:
 >
-  let g:braceless_enable_easymotion = 1
+  let g:braceless_enable_easymotion = 0
 <
 
 TEXT OBJECT TAXONOMY                                       *braceless-taxonomy*
@@ -181,6 +183,10 @@ Default:
 
 INDENTATION                                                  *braceless-indent*
 ==============================================================================
+*+indent*
+
+Using |+indent| in the |BracelessEnable| command will enable this plugin's
+|indentexpr|.
 
 There is not much to say about the general indentation Braceless performs.  It
 tries to be smart about how it suggests indentation based on blocks.  It also
@@ -196,6 +202,8 @@ difficult to do accurately.  With that said, it does work fairly well.
 
 tl;dr:  auto-indent will not go out of its way to fix your syntactically
 incorrect indentation.
+
+See |braceless-custom-indent| for info on how to write your own indent rules.
 
 
 FOLDING                                                       *braceless-folds*
@@ -266,7 +274,9 @@ OTHER LANGUAGES                                              *braceless-custom*
 If it's a language that uses indentation to define blocks, Braceless should be
 able to do for them what it does for Python.  Python support is not hard
 coded in the core functions, so you should be able to use to use them as
-needed to support your language of choice.
+needed to support your language of choice.  In fact, Python support is
+auxiliary.  Take a look at `autoload/braceless/python.vim` to
+see how it works.
 
 There are a couple |autocmd|s and functions that can help get your
 customizations setup when Braceless is enabled.
@@ -294,6 +304,38 @@ customizations setup when Braceless is enabled.
 
   autocmd User BracelessEnabled_haml call s:my_enabled()
 <
+
+CUSTOM INDENT                                         *braceless-indent-custom*
+==============================================================================
+
+You can customize how |indentexpr| behaves through
+`braceless#indent#add_handler()`, which expects a dict of functions, with any
+of the following keys: `collection`, `docstring`, and `block`.
+
+|collection| is a handler for the content of symbols that collect values, like
+`()`, `[]`, `{}`.  It is passed a line number, a list of the beginning [line,
+col], and a list of the ending [line, col]
+
+|docstring| is a handler for doctrings/heredoc content.  It is passed a line
+number, and list of the [start, end] lines.
+
+|block| is a handler for braceless blocks.  It is passed a line number, and a
+list of [block start, block end, block head line, block tail line].
+
+If any of these functions want to defer to Braceless's indent handling, they
+should throw 'cont'.
+
+There are a couple utilities that will be useful for indentation:
+
+`braceless#indent#level(line,delta)` - Given a line, it will return its indent
+level with an adjusted delta.
+
+`braceless#indent#space(line,delta)` - Given a line, it will return a list of
+[character, length] with the length having an adjusted delta.
+
+Look at `autoload/braceless/indent.vim` and `autoload/braceless/python.vim`
+for examples.
+
 
 CUSTOM PATTERNS                                            *braceless-patterns*
 ==============================================================================

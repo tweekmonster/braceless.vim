@@ -1,3 +1,7 @@
+Before:
+=======
+  BracelessEnable +indent +fold +highlight
+
 Given python (multi block script):
 ==================================
   def example():
