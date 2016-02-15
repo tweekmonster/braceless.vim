@@ -201,6 +201,9 @@ incorrect indentation.
 FOLDING                                                       *braceless-folds*
 ==============================================================================
 *+fold* *+fold-inner*
+
+⚠️  This can slow down the loading of large scripts!
+
 As with indentation, folding is based on blocks.
 >
   1. if spam \
@@ -209,8 +212,9 @@ As with indentation, folding is based on blocks.
   4.   more_spam()
 <
 Using |+fold| in the |BracelessEnable| command, the fold will be on line 1.
-If you use |+fold-inner|, the fold will be on line 3.  The choice as to which
-is the best is up to you.
+If you use |+fold-inner|, the fold will be on line 3 (the cursor must be
+somewhere between lines 3 and 4).  The choice as to which is the best is up to
+you.
 
 
 HIGHLIGHT                                                 *braceless-highlight*
