@@ -134,7 +134,7 @@ function! s:init()
   noremap <silent> <Plug>(braceless-jump-prev-n-indent) :<C-u>call braceless#movement#block(-1, 'n', 1, v:count1)<cr>
   noremap <silent> <Plug>(braceless-jump-next-n-indent) :<C-u>call braceless#movement#block(1, 'n', 1, v:count1)<cr>
 
-  highlight default BracelessIndent ctermfg=3 ctermbg=0 cterm=inverse
+  highlight default BracelessIndent ctermfg=3 cterm=inverse guifg=#ffcc00 gui=inverse
 endfunction
 
 augroup braceless_plugin
