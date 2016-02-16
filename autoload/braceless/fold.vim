@@ -6,6 +6,7 @@ function! braceless#fold#expr(line)
 
   let inner = get(b:braceless, 'fold_inner', 0)
   let i_n = braceless#indent#level(block[2], 1)
+  let end = nextnonblank(block[1] + 1) - 1
 
   if a:line != block[0] && a:line == block[3]
     return -1
@@ -13,7 +14,7 @@ function! braceless#fold#expr(line)
     return inner ? i_n - 1 : '>'.i_n
   elseif inner && a:line == block[0]+1
     return '>'.i_n
-  elseif a:line == block[1]
+  elseif a:line == end
     return '<'.i_n
   endif
   return i_n
