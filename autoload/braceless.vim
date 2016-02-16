@@ -428,8 +428,16 @@ endfunction
 
 
 " Kinda like black ops, but more exciting.
-function! braceless#block_op(motion, keymode, vmode, op)
+function! braceless#block_op(motion, keymode, vmode, op, count)
   let pattern = braceless#get_pattern()
+
+  let i = a:count - 1
+  while i > 0
+    let i -= 1
+    let block = braceless#get_block_lines(line('.'))
+    call cursor(block[2] - 1, 0)
+  endwhile
+
   call braceless#select_block(pattern, a:motion, a:keymode, a:vmode, a:op, 1)
 endfunction
 

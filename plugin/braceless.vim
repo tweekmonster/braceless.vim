@@ -114,10 +114,10 @@ endfunction
 
 
 function! s:init()
-  vnoremap <silent> <Plug>(braceless-i-v) :<C-u>call braceless#block_op('i', 'v', visualmode(), '')<cr>
-  vnoremap <silent> <Plug>(braceless-a-v) :<C-u>call braceless#block_op('a', 'v', visualmode(), '')<cr>
-  onoremap <silent> <Plug>(braceless-i-n) :<C-u>call braceless#block_op('i', 'n', visualmode(), v:operator)<cr>
-  onoremap <silent> <Plug>(braceless-a-n) :<C-u>call braceless#block_op('a', 'n', visualmode(), v:operator)<cr>
+  vnoremap <silent> <Plug>(braceless-i-v) :<C-u>call braceless#block_op('i', 'v', visualmode(), '', v:count1)<cr>
+  vnoremap <silent> <Plug>(braceless-a-v) :<C-u>call braceless#block_op('a', 'v', visualmode(), '', v:count1)<cr>
+  onoremap <silent> <Plug>(braceless-i-n) :<C-u>call braceless#block_op('i', 'n', visualmode(), v:operator, v:count1)<cr>
+  onoremap <silent> <Plug>(braceless-a-n) :<C-u>call braceless#block_op('a', 'n', visualmode(), v:operator, v:count1)<cr>
 
   vnoremap <silent> <Plug>(braceless-jump-prev-v) :<C-u>call braceless#movement#block(-1, visualmode(), 0, v:count1)<cr>
   vnoremap <silent> <Plug>(braceless-jump-next-v) :<C-u>call braceless#movement#block(1, visualmode(), 0, v:count1)<cr>
