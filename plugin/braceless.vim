@@ -6,6 +6,7 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 let s:did_init = 0
+let s:nomodline_avail = v:version > 703 || (v:version == 703 && has('patch438'))
 let g:loaded_braceless = 1
 
 
@@ -19,7 +20,11 @@ let g:braceless#key#em_next = get(g:, 'braceless_easymotion_next_key', g:bracele
 function! s:enable(...)
   if !s:did_init
     let s:did_init = 1
-    silent doautocmd <nomodeline> User BracelessInit
+    if s:nomodline_avail
+      silent doautocmd <nomodeline> User BracelessInit
+    else
+      silent doautocmd User BracelessInit
+    endif
   endif
 
   let b:braceless_enabled = 1
@@ -109,7 +114,7 @@ function! s:enable(...)
     endif
   endfor
 
-  execute 'silent doautocmd <nomodeline> User BracelessEnabled_'.&l:filetype
+  execute 'silent doautocmd '.(s:nomodline_avail ? '<nomodeline>' : '').' User BracelessEnabled_'.&l:filetype
 endfunction
 
 
