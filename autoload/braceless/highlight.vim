@@ -16,7 +16,7 @@ function! s:highlight_line(line1, line2)
   let [_, indent_len] = braceless#indent#space(a:line1, 0)
 
   if use_cc > 0
-    let &l:cc = b:braceless.orig_cc.','.(indent_len+1)
+    let &l:cc = (b:braceless.orig_cc != '' ? b:braceless.orig_cc.',' : '').(indent_len+1)
     if use_cc == 1
       return
     endif
