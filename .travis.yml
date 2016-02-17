@@ -1,5 +1,13 @@
 language: vim
 
-before_script: make .test/plugins
+before_script: |
+  git clone https://github.com/vim/vim
+  cd vim
+  git checkout v7.4.052
+  ./configure --with-features=huge
+  make -j4
+  sudo make install
+  cd -
+  make .test/plugins
 
 script: make test
