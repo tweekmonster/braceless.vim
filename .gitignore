@@ -1,5 +1,5 @@
 /doc/tags
-/.test
+/test/vim/plugins
 
 ### Vim ###
 [._]*.s[a-w][a-z]

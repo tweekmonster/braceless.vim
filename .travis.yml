@@ -1,13 +1,10 @@
-language: vim
+sudo: required
+
+services:
+  - docker
 
 before_script: |
-  git clone https://github.com/vim/vim
-  cd vim
-  git checkout v7.4.052
-  ./configure --with-features=huge
-  make -j4
-  sudo make install
-  cd -
-  make .test/plugins
+  docker pull tweekmonster/ubuntu-vims
+  make test-dirs
 
 script: make test
