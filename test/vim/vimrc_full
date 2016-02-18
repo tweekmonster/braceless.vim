@@ -1,4 +1,6 @@
 source /home/vimrc
 
+set t_Co=256
 colorscheme delek
+highlight ColorColumn ctermbg=236 term=NONE
 autocmd FileType python,coffee BracelessEnable +indent +fold +highlight-cc2
