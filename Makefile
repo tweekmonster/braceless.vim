@@ -1,15 +1,24 @@
-TEST_CMD = vim -u test/vimrc '+Vader! test/**'
+DOCKER = docker run -it --rm -v $(PWD):/testplugin -v $(PWD)/test/vim:/home tweekmonster/ubuntu-vims
+TEST_ARGS = '+Vader! test/*.vader'
 
-test: .test/plugins
-	$(TEST_CMD) > /dev/null
+test: test-dirs
+	$(DOCKER) vim-trusty $(TEST_ARGS)
 
-.test/plugins:
+run-precise:
+	$(DOCKER) vim-precise -u /home/vimrc_full
+
+run-trusty:
+	$(DOCKER) vim-trusty -u /home/vimrc_full
+
+test-dirs: test/vim/plugins
+
+test/vim/plugins:
 	mkdir -p $@
-	curl -fLo .test/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-	vim -u test/vimrc +PlugInstall +qall > /dev/null
+	cd $@ && git clone https://github.com/junegunn/vader.vim
+	cd $@ && git clone https://github.com/Lokaltog/vim-easymotion
+	cd $@ && git clone https://github.com/Raimondi/delimitMate
 
 clean:
-	rm -rf .test
+	rm -rf test/vim/plugins
 
-.PHONY: test clean
+.PHONY: test test-dirs clean

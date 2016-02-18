@@ -1,16 +1,4 @@
-filetype off
-
-set rtp=./.test,$VIMRUNTIME
-call plug#begin('./.test/plugins')
-
-Plug 'junegunn/vader.vim'
-Plug 'Lokaltog/vim-easymotion'
-Plug 'Raimondi/delimitMate'
-
-" This is Braceless
-set rtp+=./
-
-call plug#end()
+source /rtp.vim
 
 filetype plugin indent on
 

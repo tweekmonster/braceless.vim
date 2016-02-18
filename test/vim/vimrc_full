@@ -1,0 +1,4 @@
+source /home/vimrc
+
+colorscheme delek
+autocmd FileType python,coffee BracelessEnable +indent +fold +highlight-cc2
