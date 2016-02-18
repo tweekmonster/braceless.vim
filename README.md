@@ -64,7 +64,7 @@ so the guide can span the height of the window.
 
 Auto indent is based on recognized blocks instead of simply using the previous
 line's indent level.  If you enter two blank lines, you'll drop back a level.
-There's no GIF for this because need a break from all the excitement.
+There's no GIF for this because you need a break from all the excitement.
 
 
 ### EasyMotion
