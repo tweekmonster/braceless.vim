@@ -118,6 +118,11 @@ function! s:enable(...)
 endfunction
 
 
+function! s:set_highlight()
+  highlight default BracelessIndent ctermfg=3 cterm=inverse guifg=#e4b65b gui=inverse
+endfunction
+
+
 function! s:init()
   vnoremap <silent> <Plug>(braceless-i-v) :<C-u>call braceless#block_op('i', 'v', visualmode(), '', v:count1)<cr>
   vnoremap <silent> <Plug>(braceless-a-v) :<C-u>call braceless#block_op('a', 'v', visualmode(), '', v:count1)<cr>
@@ -133,15 +138,16 @@ function! s:init()
   noremap <silent> <Plug>(braceless-jump-next-n) :<C-u>call braceless#movement#block(1, 'n', 0, v:count1)<cr>
   noremap <silent> <Plug>(braceless-jump-prev-n-indent) :<C-u>call braceless#movement#block(-1, 'n', 1, v:count1)<cr>
   noremap <silent> <Plug>(braceless-jump-next-n-indent) :<C-u>call braceless#movement#block(1, 'n', 1, v:count1)<cr>
-
-  highlight default BracelessIndent ctermfg=3 cterm=inverse guifg=#ffcc00 gui=inverse
 endfunction
+
 
 augroup braceless_plugin
   autocmd!
   autocmd User BracelessEnabled_python call braceless#python#init()
+  autocmd ColorScheme * call s:set_highlight()
 augroup END
 
+call s:set_highlight()
 call s:init()
 command! -nargs=* BracelessEnable call s:enable(<f-args>)
 
