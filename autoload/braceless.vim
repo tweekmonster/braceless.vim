@@ -12,7 +12,7 @@ let s:pattern_cache = {}
 " Default patterns
 let s:pattern_default = {}
 let s:pattern_default.python = {
-      \   'start': '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:',
+      \   'start': '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:\ze\s*\_$',
       \   'end': '\S',
       \}
 let s:pattern_default.coffee = {
@@ -96,8 +96,6 @@ endfunction
 " Build a pattern that is suitable for the current line and indent level
 function! s:build_pattern(line, base, motion, selected, ...)
   let pat = '^\s*'.a:base
-  let flag = 'bc'
-  let text = getline(a:line)
   let ignore_empty = 0
   if a:0 != 0
     let ignore_empty = a:1
@@ -107,16 +105,20 @@ function! s:build_pattern(line, base, motion, selected, ...)
   " whether or not this line can actually determine the parent block.
   let [indent_char, indent_len] = braceless#indent#space(a:line, -1)
   let prev_unindent = search('^'.indent_char.'\{-,'.indent_len.'}\S', 'nbW')
-  if indent_len != 0 && prev_unindent != 0 && getline(prev_unindent) !~ '^\s*'.a:base
+  if indent_len != 0 && prev_unindent != 0 && getline(prev_unindent) !~ pat
     " The current line is indented under a non-block line.  This might mean
     " line continuations, lists, or something.  Try again.
     call cursor(prev_unindent, col('.'))
+    let head = braceless#scan_head(pat, 'cb')
 
     " Though this is recursive, it'll stop before it hits the first column.
     " Performance is a consideration, but if unexpected indentation is that
     " deep, there are more pressing matters that the user is facing.
-    return s:build_pattern(prev_unindent, a:base, a:motion, a:selected, ignore_empty)
+    return s:build_pattern(head[0], a:base, a:motion, a:selected, ignore_empty)
   endif
+
+  let flag = 'bc'
+  let text = getline(a:line)
 
   if a:selected
     let indent_delta = 0
@@ -216,11 +218,18 @@ function! s:best_indent(line)
 endfunction
 
 
-let s:syn_string = '\(String\|Heredoc\)$'
+let s:syn_string = '\%(String\|Heredoc\)$'
+let s:syn_comment = '\%(Comment\|Todo\)$'
 
 function! braceless#is_string(line, ...)
   return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~ s:syn_string
         \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~ s:syn_string)
+endfunction
+
+
+function! braceless#is_comment(line, ...)
+  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~ s:syn_comment
+        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~ s:syn_comment)
 endfunction
 
 
@@ -276,6 +285,56 @@ function! braceless#docstring(line, ...)
 endfunction
 
 
+" Scans for a block head by making sure the cursor doesn't land in a string or
+" comment that looks like a block head.  This moves the cursor.
+function! braceless#scan_head(pat, flag)
+  let head = searchpos(a:pat, a:flag.'W')
+  let shit_guard = 5
+  while shit_guard > 0 && head[0] != 0
+    if braceless#is_string(head[0], head[1]) || braceless#is_comment(head[0], head[1])
+      let head = searchpos(a:pat, a:flag.'W')
+      let shit_guard -= 1
+      continue
+    endif
+    break
+  endwhile
+  return head
+endfunction
+
+
+" Scan for a block tail by making sure it doesn't land a string or comment.
+" This does not move the cursor.
+function! braceless#scan_tail(pat, head)
+  let tail = searchpos(a:pat, 'nceW')
+  " To deal with shitty multiline block starts.  This is an issue for Python
+  " where function arguments can be interrupted with comments or have default
+  " values which may be a string that looks like the end of the block start.
+  " Note: This feels dumb.
+  if match(a:pat, '\\_\.\\{-}') != -1
+    let shit_guard = 0
+    let head_byte = line2byte(a:head[0]) + a:head[1]
+
+    let shit_guard = 5
+    while shit_guard > 0 && tail[0] != 0
+      let shit_guard -= 1
+
+      if braceless#is_string(tail[0], tail[1]) || braceless#is_comment(tail[0], tail[1])
+        " If the tail ends up a string or comment, replace the \_.\{-} portion
+        " of the pattern with one that specifically skips a certain amount of
+        " characters from the start of the head.
+        let tail_byte = line2byte(tail[0]) + tail[1]
+        let tail_tail = '\\_\.\\{-'.(tail_byte - head_byte).',}'
+        let tail = searchpos(substitute(a:pat, '\\_\.\\{-}', tail_tail, ''), 'nceW')
+        continue
+      endif
+      break
+    endwhile
+  endif
+
+  return tail
+endfunction
+
+
 " Select an indent block using ~magic~
 function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ...)
   let has_selection = 0
@@ -298,8 +357,8 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ..
 
   let [pat, flag] = s:build_pattern(c_line, a:pattern.start, a:motion, has_selection, ignore_empty)
 
-  let head = searchpos(pat, flag.'W')
-  let tail = searchpos(pat, 'nceW')
+  let head = braceless#scan_head(pat, flag)
+  let tail = braceless#scan_tail(pat, head)
 
   if head[0] == 0 || tail[0] == 0
     if a:keymode ==# 'v'

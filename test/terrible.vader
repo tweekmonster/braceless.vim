@@ -1,0 +1,38 @@
+Before:
+=======
+  BracelessEnable +indent +fold +highlight
+
+Given python (func sig with colon in string/comment):
+  class Example(object):
+      def example(arg1, arg2,
+                  # TODO: Break braceless
+                  arg3, arg4="""def lol():
+      print('lol')"""):
+          print('This passes lint tests.  Can you believe it?')
+
+      if True:
+          pass
+
+Do (yank body and replace function with paste):
+  jjviPyvaPp
+
+Expect python (body replacing function):
+  class Example(object):
+          print('This passes lint tests.  Can you believe it?')
+
+      if True:
+          pass
+
+Do (change body):
+  jjciPpass
+
+Expect python (body replaced with proper indent):
+  class Example(object):
+      def example(arg1, arg2,
+                  # TODO: Break braceless
+                  arg3, arg4="""def lol():
+      print('lol')"""):
+          pass
+
+      if True:
+          pass
