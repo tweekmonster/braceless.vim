@@ -10,6 +10,7 @@ let s:nomodline_avail = v:version > 703 || (v:version == 703 && has('patch438'))
 let g:loaded_braceless = 1
 
 
+let g:braceless#key#segment = get(g:, 'braceless_segment_key', '<tab>')
 let g:braceless#key#block = get(g:, 'braceless_block_key', 'P')
 let g:braceless#key#jump_prev = get(g:, 'braceless_jump_prev_key', '[')
 let g:braceless#key#jump_next = get(g:, 'braceless_jump_next_key', ']')
@@ -28,6 +29,18 @@ function! s:enable(...)
   endif
 
   let b:braceless_enabled = 1
+
+  if !empty(g:braceless#key#segment)
+    execute 'map <buffer> ['.g:braceless#key#segment.' <Plug>(braceless-jump-inner-prev)'
+    execute 'map <buffer> ]'.g:braceless#key#segment.' <Plug>(braceless-jump-inner-next)'
+    execute 'map <buffer> '.g:braceless#key#segment.'k <Plug>(braceless-jump-inner-prev-ex)'
+    execute 'map <buffer> '.g:braceless#key#segment.'j <Plug>(braceless-jump-inner-next-ex)'
+
+    execute 'vmap <buffer> ['.g:braceless#key#segment.' <Plug>(braceless-jump-inner-prev-v)'
+    execute 'vmap <buffer> ]'.g:braceless#key#segment.' <Plug>(braceless-jump-inner-next-v)'
+    execute 'vmap <buffer> '.g:braceless#key#segment.'k <Plug>(braceless-jump-inner-prev-v-ex)'
+    execute 'vmap <buffer> '.g:braceless#key#segment.'j <Plug>(braceless-jump-inner-next-v-ex)'
+  endif
 
   if !empty(g:braceless#key#block)
     execute 'vmap <buffer> i'.g:braceless#key#block.' <Plug>(braceless-i-v)'
@@ -124,10 +137,21 @@ endfunction
 
 
 function! s:init()
+
   vnoremap <silent> <Plug>(braceless-i-v) :<C-u>call braceless#block_op('i', 'v', visualmode(), '', v:count1)<cr>
   vnoremap <silent> <Plug>(braceless-a-v) :<C-u>call braceless#block_op('a', 'v', visualmode(), '', v:count1)<cr>
   onoremap <silent> <Plug>(braceless-i-n) :<C-u>call braceless#block_op('i', 'n', visualmode(), v:operator, v:count1)<cr>
   onoremap <silent> <Plug>(braceless-a-n) :<C-u>call braceless#block_op('a', 'n', visualmode(), v:operator, v:count1)<cr>
+
+  vnoremap <silent> <Plug>(braceless-jump-inner-prev-v) :<C-u>call braceless#movement#inner_block(-1, 'v', 1, 1)<cr>
+  vnoremap <silent> <Plug>(braceless-jump-inner-next-v) :<C-u>call braceless#movement#inner_block(1, 'v', 1, 0)<cr>
+  vnoremap <silent> <Plug>(braceless-jump-inner-prev-v-ex) :<C-u>call braceless#movement#inner_block(-1, 'v', 0, 0)<cr>
+  vnoremap <silent> <Plug>(braceless-jump-inner-next-v-ex) :<C-u>call braceless#movement#inner_block(1, 'v', 0, 1)<cr>
+
+  noremap <silent> <Plug>(braceless-jump-inner-prev) :<C-u>call braceless#movement#inner_block(-1, 'n', 1, 1)<cr>
+  noremap <silent> <Plug>(braceless-jump-inner-next) :<C-u>call braceless#movement#inner_block(1, 'n', 1, 0)<cr>
+  noremap <silent> <Plug>(braceless-jump-inner-prev-ex) :<C-u>call braceless#movement#inner_block(-1, 'n', 0, 0)<cr>
+  noremap <silent> <Plug>(braceless-jump-inner-next-ex) :<C-u>call braceless#movement#inner_block(1, 'n', 0, 1)<cr>
 
   vnoremap <silent> <Plug>(braceless-jump-prev-v) :<C-u>call braceless#movement#block(-1, visualmode(), 0, v:count1)<cr>
   vnoremap <silent> <Plug>(braceless-jump-next-v) :<C-u>call braceless#movement#block(1, visualmode(), 0, v:count1)<cr>

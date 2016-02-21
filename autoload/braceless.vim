@@ -486,6 +486,18 @@ function! braceless#get_block_lines(line, ...)
 endfunction
 
 
+function! braceless#get_parent_block_lines(line, ...)
+  let saved = winsaveview()
+  let block = braceless#get_block_lines(a:line)
+  let [indent_char, indent_len] = braceless#indent#space(block[2], -1)
+  call cursor(block[2], 0)
+  let sub = search('^'.indent_char.'{-,'.indent_len.'}\S', 'nbW')
+  let parent = braceless#get_block_lines(sub)
+  call winrestview(saved)
+  return [parent, block]
+endfunction
+
+
 " Kinda like black ops, but more exciting.
 function! braceless#block_op(motion, keymode, vmode, op, count)
   let pattern = braceless#get_pattern()

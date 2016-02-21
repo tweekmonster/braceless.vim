@@ -1,0 +1,32 @@
+Execute (setup):
+================
+  Save &rtp
+
+  set rtp+=..
+
+  let g:braceless#key#segment = '\'
+
+  function! AssertCursor(line, ...)
+    if a:0
+      let pos = getpos('.')[1:2]
+      AssertEqual [a:line, a:1], pos, 'Expected cursor at ['.a:line.', '.a:1.'], got '.string(pos)
+    else
+      AssertEqual a:line, line('.'), 'Expected cursor on line '.a:line.', but it''s on line '.line('.')
+    endif
+  endfunction
+
+  command! -nargs=+ AssertCursor call AssertCursor(<args>)
+
+Include: autocmd.vader
+Include: indent.vader
+Include: delimitMate.vader
+Include: motion.vader
+Include: terrible.vader
+
+Execute (cleanup):
+==================
+  silent! delf AssertCursor
+  silent! unlet g:did_init
+  silent! unlet g:did_enable_python
+  silent! unlet g:did_enable_yaml
+  Restore

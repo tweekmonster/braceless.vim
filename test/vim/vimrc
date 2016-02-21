@@ -24,6 +24,18 @@ set foldmethod=syntax
 set foldlevelstart=10
 set foldnestmax=10
 set ttimeoutlen=0
+set cmdheight=5
 
 
 let mapleader=","
+
+function! s:reload()
+  for file in split(expand('autoload/**/*.vim'), '\n')
+    execute 'silent Runtime' file
+  endfor
+
+  silent Runtime plugin/braceless.vim
+endfunction
+
+command! Rerun :tabclose | :e! test/test.vader | :call s:reload() | :Vader
+nnoremap R :Rerun<cr>

@@ -1,8 +1,10 @@
 DOCKER = docker run -it --rm -v $(PWD):/testplugin -v $(PWD)/test/vim:/home tweekmonster/ubuntu-vims
-TEST_ARGS = '+Vader! test/*.vader'
 
 test: test-dirs
-	$(DOCKER) vim-trusty $(TEST_ARGS)
+	$(DOCKER) vim-trusty '+Vader test/test.vader'
+
+test-print: test-dirs
+	$(DOCKER) vim-trusty '+Vader! test/test.vader'
 
 run-precise:
 	$(DOCKER) vim-precise -u /home/vimrc_full
@@ -17,6 +19,7 @@ test/vim/plugins:
 	cd $@ && git clone https://github.com/junegunn/vader.vim
 	cd $@ && git clone https://github.com/Lokaltog/vim-easymotion
 	cd $@ && git clone https://github.com/Raimondi/delimitMate
+	cd $@ && git clone https://github.com/tpope/vim-scriptease
 
 clean:
 	rm -rf test/vim/plugins

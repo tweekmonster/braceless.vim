@@ -7,4 +7,4 @@ before_script: |
   docker pull tweekmonster/ubuntu-vims
   make test-dirs
 
-script: make test
+script: make test-print

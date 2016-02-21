@@ -20,13 +20,13 @@ Given python (multi block script):
 Execute (move to last block, then jump to first):
 =================================================
   normal ]]
-  AssertEqual [1, 14], getpos('.')[1:2]
+  AssertCursor 1, 14
   normal ]]
-  AssertEqual [8, 21], getpos('.')[1:2]
+  AssertCursor 8, 21
   normal ]]
-  AssertEqual [11, 23], getpos('.')[1:2]
+  AssertCursor 11, 23
   normal 3[[
-  AssertEqual [1, 14], getpos('.')[1:2]
+  AssertCursor 1, 14
 
 Do (delete body):
 =================
@@ -184,9 +184,11 @@ Given python (function without body followed by blocks):
       pass
 
 Do (indent contingious content, unindent second inner function):
+================================================================
   >iP3]]<aP
 
 Expect python (third function returned to first column):
+========================================================
   def example():
       def example():
           if True:
@@ -196,3 +198,97 @@ Expect python (third function returned to first column):
 
   def example():
       pass
+
+Given python (segmented block gauntlet):
+========================================
+  class Example(object):
+      def __init__(self):
+          print('hello')
+          print('world!')
+
+          if True:
+              pass
+
+          print('hello again')
+          print('hello again')
+
+      def never(self):
+          if True:
+              if True:
+                  print('gonna')
+
+                  print('give')
+              else:
+                  print('you')
+
+      def up(self):
+          if True:
+              print('never')
+              print('gonna')
+          else:
+              print('let')
+
+      def you(self):
+          if True:
+              print('down')
+              print('never')
+          else:
+              print('gonna')
+
+      def run(self):
+          if True:
+              print('around')
+              print('and')
+          else:
+              print('desert')
+
+          print('you')
+
+Execute (move by block segments):
+=====================
+  normal \j
+  AssertCursor 3, 9
+  normal \j
+  AssertCursor 7, 13
+  normal \j
+  AssertCursor 9, 9
+  normal \j
+  AssertCursor 15, 17
+  normal \j
+  AssertCursor 19, 17
+  normal 3\j
+  AssertCursor 30, 13
+  normal G$\k
+  AssertCursor 40, 27
+  normal \k
+  AssertCursor 38, 24
+  normal \k
+  AssertCursor 33, 26
+  normal 5\k
+  AssertCursor 17, 29
+  normal 99\j
+  AssertCursor 42, 9
+  normal 99\k
+  AssertCursor 1, 22
+
+Execute (move by inner block):
+==============================
+  normal \j
+  normal ]\
+  AssertCursor 4, 23
+  normal ]\
+  AssertCursor 4, 23
+  normal [\
+  AssertCursor 3, 9
+  normal [\
+  AssertCursor 3, 9
+  normal 1]\
+  AssertCursor 7, 16
+  normal [\
+  AssertCursor 7, 13
+  normal 2]\
+  AssertCursor 17, 29
+  normal 99]\
+  AssertCursor 42, 20
+  normal 99[\
+  AssertCursor 1, 1
