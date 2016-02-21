@@ -75,31 +75,45 @@ function! s:indent_handler.block(line, block)
   let indent_delta = 1
   let text = getline(a:line)
 
+  " Get a line above the current block
   let prev = prevnonblank(a:block[2] - 1)
   let pos = getpos('.')[1:2]
+
+  " If the current line is at the block head, move to the line above to
+  " determine a parent or sibling block
   if a:block[2] == a:line
     call cursor(prev, 0)
   endif
-  let block_head = search(s:block_pattern, 'bcnW')
+
+  let pat = '^\s*'.braceless#get_pattern().start
+  let block_head = braceless#scan_head(pat, 'b')[0]
+  if block_head > a:block[2]
+    return braceless#indent#space(block_head, 1)[1]
+  endif
+
+  if a:block[2] != a:line && block_head == a:line
+    " If the current line is a block head, move to the line above to determine
+    " a parent or sibling block
+    call cursor(prev, 0)
+    let block_head = braceless#scan_head(pat, 'b')[0]
+  endif
+  echomsg 'block_head' block_head ' block ' string(a:block)
   call cursor(pos)
 
-  if prev != block_head && match(text, s:block_pattern) != -1
-    " The current line matches a block pattern
-    let indent_delta = 0
-    let line_kw = matchstr(text, '\K\+')
-
+  if prev != block_head && match(text, pat) != -1
+    " Current line matches a block pattern
     if block_head == 0
       throw 'cont'
     endif
 
-    let block_kw = matchstr(getline(block_head), '\K\+')
-
+    let indent_delta = 0
+    let line_kw = matchstr(text, '\K\+')
     if has_key(s:block_siblings, line_kw)
       let siblings = s:block_siblings[line_kw]
 
-      " No sibling was found for this line, assume it should be indented past
-      " the previous block
-      if index(siblings, block_kw) == -1
+      if index(siblings, line_kw) == -1
+        " No sibling was found for this line, assume it should be indented
+        " past the previous block
         let indent_delta = 1
       else
         " So, it does hav a sibling.  Find one that's on the same indent level
