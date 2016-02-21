@@ -97,7 +97,6 @@ function! s:indent_handler.block(line, block)
     call cursor(prev, 0)
     let block_head = braceless#scan_head(pat, 'b')[0]
   endif
-  echomsg 'block_head' block_head ' block ' string(a:block)
   call cursor(pos)
 
   if prev != block_head && match(text, pat) != -1
