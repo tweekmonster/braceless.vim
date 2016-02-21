@@ -22,8 +22,6 @@ Execute (move to last block, then jump to first):
   normal ]]
   AssertEqual [1, 14], getpos('.')[1:2]
   normal ]]
-  AssertEqual [5, 12], getpos('.')[1:2]
-  normal ]]
   AssertEqual [8, 21], getpos('.')[1:2]
   normal ]]
   AssertEqual [11, 23], getpos('.')[1:2]
