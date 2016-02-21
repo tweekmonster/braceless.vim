@@ -27,7 +27,7 @@ function! braceless#movement#block(direction, vmode, by_indent, count)
 
   let i = a:count
   while i > 0
-    call searchpos(pat, flags.'e')
+    call braceless#scan_head(pat, flags.'e')
     let i -= 1
   endwhile
 endfunction
