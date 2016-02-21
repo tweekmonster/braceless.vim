@@ -1,4 +1,4 @@
-# Braceless
+# Braceless [![Build Status](https://travis-ci.org/tweekmonster/braceless.vim.svg?branch=master)](https://travis-ci.org/tweekmonster/braceless.vim)
 
 Text objects, folding, and more for Python and other indented languages.
 CoffeeScript support is already baked in, but mainly as an incomplete proof of
