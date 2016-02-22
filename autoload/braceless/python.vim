@@ -63,7 +63,7 @@ let s:block_pattern = '^\s*\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\
 " Blocks to keep on the same indent level if the sibling above it matches
 let s:block_siblings = {
       \   'else': ['if', 'for', 'try', 'elif', 'while', 'except'],
-      \   'elif': ['if'],
+      \   'elif': ['if', 'elif'],
       \   'except': ['try', 'except'],
       \   'finally': ['try', 'except', 'else']
       \ }
@@ -88,6 +88,10 @@ function! s:indent_handler.block(line, block)
   let pat = '^\s*'.braceless#get_pattern().start
   let block_head = braceless#scan_head(pat, 'b')[0]
   if block_head > a:block[2]
+    let prev_block = braceless#get_block_lines(block_head)
+    if prevnonblank(a:line - 1) > prev_block[1]
+      return braceless#indent#space(a:block[2], 1)[1]
+    endif
     return braceless#indent#space(block_head, 1)[1]
   endif
 
@@ -99,18 +103,21 @@ function! s:indent_handler.block(line, block)
   endif
   call cursor(pos)
 
-  if prev != block_head && match(text, pat) != -1
+ if match(text, pat) != -1
     " Current line matches a block pattern
     if block_head == 0
       throw 'cont'
     endif
 
     let indent_delta = 0
+    let block_kw = matchstr(getline(block_head), '\K\+')
     let line_kw = matchstr(text, '\K\+')
     if has_key(s:block_siblings, line_kw)
       let siblings = s:block_siblings[line_kw]
 
-      if index(siblings, line_kw) == -1
+      " Todo: Scan upward to find a matching sibling
+
+      if index(siblings, block_kw) == -1
         " No sibling was found for this line, assume it should be indented
         " past the previous block
         let indent_delta = 1

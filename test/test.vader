@@ -2,6 +2,7 @@ Execute (setup):
 ================
   Save &rtp
 
+  set cmdheight=100
   set rtp+=..
 
   let g:braceless#key#segment = '\'
@@ -25,6 +26,7 @@ Include: terrible.vader
 
 Execute (cleanup):
 ==================
+  set cmdheight=1
   silent! delf AssertCursor
   silent! unlet g:did_init
   silent! unlet g:did_enable_python

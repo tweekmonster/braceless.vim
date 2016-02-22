@@ -116,11 +116,11 @@ Do (insert try+except without bodies):
 ======================================
   A\<cr>try:\<cr>except:
 
-Expect python (except block indented past try):
-===============================================
+Expect python (except block on same indent level as try):
+=========================================================
   def example():
       try:
-          except:
+      except:
 
 Do (insert try+except with try body):
 =====================================
@@ -132,3 +132,87 @@ Expect python (except block on same indent level as try):
       try:
           pass
       except:
+
+Do (insert nested try+except):
+==============================
+  A\<cr>try:\<cr>try:\<cr>except:\<cr>except:
+
+Expect python (nested try with two except blocks):
+==================================================
+  def example():
+      try:
+          try:
+          except:
+          except:
+
+Do (insert if statement with two elif):
+=======================================
+  A\<cr>if:\<cr>elif:\<cr>elif:
+
+Expect python (all three lines on same indent level):
+=====================================================
+  def example():
+      if:
+      elif:
+      elif:
+
+Given python (else overindented):
+=================================
+  if True:
+      pass
+      else:
+
+Do (reindent with sibling block):
+=================================
+  jj==
+
+Expect python (else indent match if):
+=====================================
+  if True:
+      pass
+  else:
+
+Do (reindent then insert below):
+================================
+  jj==opass
+
+Expect python (else indent match if with pass below):
+=====================================================
+  if True:
+      pass
+  else:
+      pass
+
+Given python (if with no body):
+=====================================================
+  if True:
+
+Do (insert else statement):
+===========================
+  oelse:
+
+Expect python (else statement with same indent as previous line):
+=================================================================
+  if True:
+  else:
+
+Given python (nested block with block segment below):
+=====================================================
+  def example():
+      if True:
+          if True:
+              pass
+      print('hello')
+
+Do (insert below print):
+========================
+  Gopass
+
+Expect python (pass below print):
+=================================
+  def example():
+      if True:
+          if True:
+              pass
+      print('hello')
+      pass
