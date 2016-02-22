@@ -10,7 +10,7 @@ let s:nomodline_avail = v:version > 703 || (v:version == 703 && has('patch438'))
 let g:loaded_braceless = 1
 
 
-let g:braceless#key#segment = get(g:, 'braceless_segment_key', '<tab>')
+let g:braceless#key#segment = get(g:, 'braceless_segment_key', '')
 let g:braceless#key#block = get(g:, 'braceless_block_key', 'P')
 let g:braceless#key#jump_prev = get(g:, 'braceless_jump_prev_key', '[')
 let g:braceless#key#jump_next = get(g:, 'braceless_jump_next_key', ']')

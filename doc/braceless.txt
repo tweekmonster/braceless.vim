@@ -146,25 +146,6 @@ position you at the end of the previous or next block heads.
 The object selection key is P, as in `iP` and `aP`.  These are always |linewise|
 operations.
 
-In addition to movement by blocks, you can move by block segments.  These
-movements are similar to Vim's fold movements (e.g. |[z| and |zj|).  The
-default key for these movements is <Tab>.  I'm sorry in advanced if you are
-using <Tab> in normal mode for other things.  Keyboard real estate is tough in
-Vim.  You can change this key with |g:braceless_segment_key|.
-
-
-*[<Tab>*        Position the cursor at the beginning of the current block
-              segment.
-
-*]<Tab>*        Position the cursor at the end of the current block segment.
-
-*<Tab>k*        Position the cursor at the end of the block segment above the
-              current one.
-
-*<Tab>j*        Position the cursor at the beginning of the block segment
-              below the current one.
-
-
 All of the above key accept a |count| and can be used with an |operator|.
 
 
@@ -175,15 +156,6 @@ All mappings displayed below are the default values.  You don't need to add
 them to your |vimrc| unless you want to change them.  If you want to disable a
 mapping, assign it an empty string.
 
-
-*g:braceless_segment_key*
-
-This sets the block segment movement key.  By default it uses <Tab>.
-
-Default:
->
-  let g:braceless_segment_key = '<tab>'
-<
 
 *g:braceless_block_key*
 
