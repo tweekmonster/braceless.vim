@@ -58,23 +58,25 @@ function! s:indent_handler.collection(line, col_head, col_tail)
 endfunction
 
 
-let s:block_pattern = '^\s*\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)'
-
-
-function! s:scan_parent(name, from, start, stop, exact)
-  let [indent_char, indent_len] = braceless#indent#space(a:from, 0)
+" Scan upward for a parent block matching the name.  `indent_from` is the line
+" to take the indent level from.  `start` and `stop` are the bounds for the
+" search.  `exact` tells the search to match the indent level exactly.
+function! s:scan_parent(name, indent_from, start, stop, exact)
+  let [indent_char, indent_len] = braceless#indent#space(a:indent_from, 0)
   let pat = '^'
   if a:stop
     let pat .= '\%>'.a:stop.'l\&'
   endif
-  let pat .= '\%('.indent_char.'\{'
-  if !a:exact
-    let pat .= ','
+  let pat .= '\%('.indent_char
+  if a:exact
+    let pat .= '\{'.indent_len.'}'
+  else
+    let pat .= '*'
   endif
-  let pat .= indent_len.'}\%('.a:name.'\)\_.\{-}:\ze\s*\%(\_$\|#\)\)'
+  let pat .= '\%('.a:name.'\)\_.\{-}:\ze\s*\%(\_$\|#\)\)'
   let pos = getpos('.')[1:2]
   call cursor(a:start, col([a:start, '$']))
-  let found = braceless#scan_head(pat, 'nbW')[0]
+  let found = braceless#scan_head(pat, 'ncbW')[0]
   call cursor(pos)
   return found
 endfunction
@@ -82,42 +84,63 @@ endfunction
 
 " Indent based on the current block and its expected sibling
 function! s:contextual_indent(line, kw)
-  let found = 0
+  let found = -1
   let prev = prevnonblank(a:line - 1)
 
   if a:kw == 'else'
-    let found = s:scan_parent('if\|try\|for\|elif\|while\|except', a:line, prev, 0, 0)
+    let parent = 'if\|try\|for\|elif\|while\|except'
   elseif a:kw == 'elif'
-    let found = s:scan_parent('if', a:line, prev, 0, 0)
+    let parent = 'if'
   elseif a:kw == 'except'
-    let found = s:scan_parent('try\|except', a:line, prev, 0, 0)
+    let parent = 'try'
   elseif a:kw == 'finally'
-    let found = s:scan_parent('try\|else\|except', a:line, prev, 0, 0)
-  endif
-
-  if found == 0
+    let parent = 'try'
+  else
+    " Let the default block indentation take over
     throw 'cont'
   endif
 
-  if a:kw == 'else' || a:kw == 'finally'
-    " Blocks that must be unique within their set
-    let other = s:scan_parent(a:kw, found, prev, found, 1)
-    if other != 0 && other != a:line && other > found
-      return s:contextual_indent(found, a:kw)
-    endif
-  elseif a:kw == 'elif'
-    let other = s:scan_parent('else', found, prev, found, 1)
-    if other != 0 && other != a:line && other > found
-      return s:contextual_indent(found, a:kw)
-    endif
+  let found = s:scan_parent(parent, a:line, a:line, 0, 0)
+
+  if found == 0
+    " Even though we had a reason to check, we didn't find a match
+    throw 'cont'
   endif
 
-  if found != 0
-    let block = braceless#get_block_lines(found)
-    if block[0] != block[1] && block[1] < prev
+  if a:kw == 'else' || a:kw == 'elif' || a:kw == 'finally'
+    " `scan` is what should *not* be on the same indent level as the parent
+    if a:kw == 'elif'
+      let scan = 'else'
+    else
+      " else and finally should be unique in their block set
+      let scan = a:kw
+    endif
+
+    let other = s:scan_parent(scan, found, prev, found, 1)
+    if other != 0 && indent(other) == 0
+      " There is no competing block
       throw 'cont'
     endif
+
+    " There is a competing block.  Figure out where the current block fits.
+    let last_found = found
+    let seen = []
+    while other != 0 && indent(found) == indent(other)
+      " Keep searching if a competing block is matched with the desired parent
+      " Note: Should there be a limit to this?  Should I care about deeply
+      " nested blocks?
+      let found = s:scan_parent(parent, found, found - 1, 0, 0)
+      let other = s:scan_parent(scan, found, prev, found, 1)
+
+      if index(seen, other) != -1
+        " Guard against infinite loop
+        break
+      endif
+
+      call add(seen, other)
+    endwhile
   endif
+
   return braceless#indent#space(found, 0)[1]
 endfunction
 
@@ -140,9 +163,9 @@ function! s:indent_handler.block(line, block)
   let pat = '^\s*'.braceless#get_pattern().start
   let block_head = braceless#scan_head(pat, 'b')[0]
   if block_head > a:block[2]
+    " Special case for weirdly indented multi-line blocks
     let prev_block = braceless#get_block_lines(block_head)
     let prev_line = prevnonblank(a:line - 1)
-    echomsg prev_block '-' prev_line
     if prev_line > prev_block[1]
       throw 'cont'
     endif
@@ -155,6 +178,7 @@ function! s:indent_handler.block(line, block)
     return s:contextual_indent(a:line, line_kw)
   endif
 
+  " Fall back to the default block indent
   throw 'cont'
 endfunction
 

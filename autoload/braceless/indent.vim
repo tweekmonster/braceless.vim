@@ -104,16 +104,9 @@ function! braceless#indent#non_block(line, prev)
 endfunction
 
 
-function! braceless#indent#expr(line)
-  let prev = prevnonblank(a:line)
-
-  try
-    return braceless#indent#non_block(a:line, prev)
-  catch /cont/
-  endtry
-
+function! s:handle_blocks(line, prev)
   let handler = get(s:handlers, &l:filetype, {})
-  let block = braceless#get_block_lines(prev, 1)
+  let block = braceless#get_block_lines(a:prev, 1)
   if block[2] == 0
     return -1
   endif
@@ -125,13 +118,49 @@ function! braceless#indent#expr(line)
       throw 'cont'
     endif
   catch /cont/
-    if a:line - prev > 2 && a:line > block[1]
+    if a:line - a:prev > 2 && a:line > block[1]
+      " Gone past the point of caring.  Use the user's indent.
       return -1
-    elseif a:line > block[1] && a:line - prev > 1 || a:line == block[2] || a:line == block[3]
+    elseif a:line == block[2] || a:line == block[3]
+      " On a block head
+      if prevnonblank(block[2] - 1) == 0
+        " Special case for the first block in a file
+        return 0
+      endif
+      let block2 = braceless#get_block_lines(prevnonblank(block[2] - 1), 1)
+      let delta = 0
+      if block2[1] >= block[1] || block2[2] == block2[1]
+        " If the previous block contains this block.  If the previous block
+        " doesn't have a body it will adopt this one.
+        let delta = 1
+      endif
+      return braceless#indent#space(block2[2], delta)[1]
+    elseif a:line > block[1] && a:line - a:prev > 1
+      " Current line is past the end of a block, drop back one level
       return braceless#indent#space(block[2], 0)[1]
-    elseif prev > block[1]
-      return braceless#indent#space(prev, 0)[1]
+    elseif a:prev > block[1]
+      " There is another line before end of the previous block, match its
+      " indent.
+      return braceless#indent#space(a:prev, 0)[1]
     endif
+
     return braceless#indent#space(block[2], 1)[1]
   endtry
+endfunction
+
+
+function! braceless#indent#expr(line)
+  let prev = prevnonblank(a:line)
+
+  try
+    return braceless#indent#non_block(a:line, prev)
+  catch /cont/
+  endtry
+
+  let i = s:handle_blocks(a:line, prev)
+  if i >= 0 && &expandtab
+    " Fix the indent level so it's a multiple of &sw
+    let i = &sw * (i / &sw)
+  endif
+  return i
 endfunction

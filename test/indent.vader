@@ -425,7 +425,6 @@ Do (reindent entire buffer):
 
 Expect python (reindented block with if statement over indented):
 =================================================================
--- Note: this is expected since there's no body to give context
   try:
       if True:
           print('true')
@@ -433,13 +432,13 @@ Expect python (reindented block with if statement over indented):
   else:
       print('false')
       if:
+          if:
               if:
-                  if:
-                      pass
-                  else:
-                      pass
-              elif:
                   pass
+              else:
+                  pass
+          elif:
+              pass
 
 Given python (nested try and if with extra else statement with bodies):
 =======================================================================
@@ -462,7 +461,7 @@ Given python (nested try and if with extra else statement with bodies):
 
 Do (reindent entire buffer):
 ============================
-  ggVG=
+  gg=G
   
 Expect python (properly reindented block):
 ==========================================
@@ -499,3 +498,125 @@ Expect python (elif indented with first if):
       if:
       else:
   elif:
+
+Given python (mested if else):
+==============================
+  if True:
+      if True:
+          if True:
+          else:
+      else:
+          else:
+
+Do (reindent dangling else):
+============================
+  G==
+
+Expect python (dangling else indented with first if):
+=====================================================
+  if True:
+      if True:
+          if True:
+          else:
+      else:
+  else:
+
+Given python (overindented func and other bad indent):
+======================================================
+          def example():
+              if True:
+
+                  else:
+              
+              while 1:
+                break
+              else:
+                pass
+
+                if 1:
+                  pass
+
+Do (reindent garbage):
+======================
+  gg=G
+
+Expect python (indent corrected):
+=================================
+  def example():
+      if True:
+
+      else:
+
+          while 1:
+              break
+          else:
+              pass
+
+              if 1:
+                  pass
+
+Given python (blocks that can use else):
+========================================
+       if True:
+        pass
+      else:
+      pass
+
+  while 1:
+      break
+      else:
+      pass
+
+  for x in [1, 2,
+      3, 4]:
+        pass
+    else:
+
+   try:
+  pass
+      except Exception:
+      pass
+
+  finally:
+  if:
+  elif:
+    if:
+  else:
+      pass
+          elif:
+        else:
+
+Do (reindent garbage):
+======================
+  gg=G
+
+Expect python (properly indented garbage):
+==========================================
+  if True:
+      pass
+  else:
+      pass
+
+  while 1:
+      break
+  else:
+      pass
+
+  for x in [1, 2,
+            3, 4]:
+      pass
+  else:
+
+      try:
+          pass
+      except Exception:
+          pass
+
+      finally:
+          if:
+          elif:
+              if:
+              else:
+                  pass
+          elif:
+          else:

@@ -62,9 +62,18 @@ so the guide can span the height of the window.
 
 ### Somewhat intelligent auto-indent
 
-Auto indent is based on recognized blocks instead of simply using the previous
-line's indent level.  If you enter two blank lines, you'll drop back a level.
-There's no GIF for this because you need a break from all the excitement.
+Ever wished for autoindent that didn't make you fix the indent?  Wish no more,
+pal.  It's not perfect, but it's definitely better.  There is even PEP 8
+indentation built in, and if you use [delimitMate](https://github.com/Raimondi/delimitMate)
+with the `expand_cr` option enabled, Braceless will disable it temporarily when
+you're messing with block arguments.
+
+If you prefer the built-in autoindent, don't add the `+indent` option to the
+`BracelessEnable` command.
+
+![braceless-autoindent](https://cloud.githubusercontent.com/assets/111942/13276832/41eb5e76-da91-11e5-9d29-0537dd887f2b.gif)
+
+(The backspace key was never used in the image above)
 
 
 ### EasyMotion
