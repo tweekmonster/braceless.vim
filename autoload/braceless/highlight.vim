@@ -87,7 +87,7 @@ function! braceless#highlight#enable(b)
 
     augroup braceless_highlight
       autocmd! * <buffer>
-      autocmd CursorMoved,CursorMovedI <buffer> call braceless#highlight#update(0)
+      autocmd CursorMoved,CursorMovedI,TextChanged,TextChangedI <buffer> call braceless#highlight#update(0)
       autocmd WinEnter,BufEnter <buffer> call braceless#highlight#update(1)
       autocmd WinLeave,BufLeave <buffer> call s:mark_column(0, 0, 0)
     augroup END
