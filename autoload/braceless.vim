@@ -12,7 +12,7 @@ let s:pattern_cache = {}
 " Default patterns
 let s:pattern_default = {}
 let s:pattern_default.python = {
-      \   'start': '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:\ze\s*\_$',
+      \   'start': '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:\ze\s*\%(\_$\|#\)',
       \   'end': '\S',
       \}
 let s:pattern_default.coffee = {
@@ -71,7 +71,7 @@ function! s:get_block_end(start, pattern)
     let start = nextnonblank(start + 1)
   endwhile
 
-  return lastline
+  return prevnonblank(lastline)
 endfunction
 
 

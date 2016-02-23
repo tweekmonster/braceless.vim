@@ -60,19 +60,71 @@ endfunction
 
 let s:block_pattern = '^\s*\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)'
 
-" Blocks to keep on the same indent level if the sibling above it matches
-let s:block_siblings = {
-      \   'else': ['if', 'for', 'try', 'elif', 'while', 'except'],
-      \   'elif': ['if', 'elif'],
-      \   'except': ['try', 'except'],
-      \   'finally': ['try', 'except', 'else']
-      \ }
+
+function! s:scan_parent(name, from, start, stop, exact)
+  let [indent_char, indent_len] = braceless#indent#space(a:from, 0)
+  let pat = '^'
+  if a:stop
+    let pat .= '\%>'.a:stop.'l\&'
+  endif
+  let pat .= '\%('.indent_char.'\{'
+  if !a:exact
+    let pat .= ','
+  endif
+  let pat .= indent_len.'}\%('.a:name.'\)\_.\{-}:\ze\s*\%(\_$\|#\)\)'
+  let pos = getpos('.')[1:2]
+  call cursor(a:start, col([a:start, '$']))
+  let found = braceless#scan_head(pat, 'nbW')[0]
+  call cursor(pos)
+  return found
+endfunction
+
+
+" Indent based on the current block and its expected sibling
+function! s:contextual_indent(line, kw)
+  let found = 0
+  let prev = prevnonblank(a:line - 1)
+
+  if a:kw == 'else'
+    let found = s:scan_parent('if\|try\|for\|elif\|while\|except', a:line, prev, 0, 0)
+  elseif a:kw == 'elif'
+    let found = s:scan_parent('if', a:line, prev, 0, 0)
+  elseif a:kw == 'except'
+    let found = s:scan_parent('try\|except', a:line, prev, 0, 0)
+  elseif a:kw == 'finally'
+    let found = s:scan_parent('try\|else\|except', a:line, prev, 0, 0)
+  endif
+
+  if found == 0
+    throw 'cont'
+  endif
+
+  if a:kw == 'else' || a:kw == 'finally'
+    " Blocks that must be unique within their set
+    let other = s:scan_parent(a:kw, found, prev, found, 1)
+    if other != 0 && other != a:line && other > found
+      return s:contextual_indent(found, a:kw)
+    endif
+  elseif a:kw == 'elif'
+    let other = s:scan_parent('else', found, prev, found, 1)
+    if other != 0 && other != a:line && other > found
+      return s:contextual_indent(found, a:kw)
+    endif
+  endif
+
+  if found != 0
+    let block = braceless#get_block_lines(found)
+    if block[0] != block[1] && block[1] < prev
+      throw 'cont'
+    endif
+  endif
+  return braceless#indent#space(found, 0)[1]
+endfunction
 
 
 " Handles Python block indentation.  This probably needs a lot more work.
 function! s:indent_handler.block(line, block)
   " Special cases here.
-  let indent_delta = 1
   let text = getline(a:line)
 
   " Get a line above the current block
@@ -89,58 +141,21 @@ function! s:indent_handler.block(line, block)
   let block_head = braceless#scan_head(pat, 'b')[0]
   if block_head > a:block[2]
     let prev_block = braceless#get_block_lines(block_head)
-    if prevnonblank(a:line - 1) > prev_block[1]
-      return braceless#indent#space(a:block[2], 1)[1]
+    let prev_line = prevnonblank(a:line - 1)
+    echomsg prev_block '-' prev_line
+    if prev_line > prev_block[1]
+      throw 'cont'
     endif
     return braceless#indent#space(block_head, 1)[1]
   endif
-
-  if a:block[2] != a:line && block_head == a:line
-    " If the current line is a block head, move to the line above to determine
-    " a parent or sibling block
-    call cursor(prev, 0)
-    let block_head = braceless#scan_head(pat, 'b')[0]
-  endif
   call cursor(pos)
 
- if match(text, pat) != -1
-    " Current line matches a block pattern
-    if block_head == 0
-      throw 'cont'
-    endif
-
-    let indent_delta = 0
-    let block_kw = matchstr(getline(block_head), '\K\+')
+  if match(text, pat) != -1
     let line_kw = matchstr(text, '\K\+')
-    if has_key(s:block_siblings, line_kw)
-      let siblings = s:block_siblings[line_kw]
-
-      " Todo: Scan upward to find a matching sibling
-
-      if index(siblings, block_kw) == -1
-        " No sibling was found for this line, assume it should be indented
-        " past the previous block
-        let indent_delta = 1
-      else
-        " So, it does hav a sibling.  Find one that's on the same indent level
-        " to see if it should actually be moved from where it is.
-        let [indent_char, indent_len] = braceless#indent#space(a:line, 0)
-        call cursor(prevnonblank(a:line - 1), 0)
-        let prev_block = search('^'.indent_char.'\{'.indent_len.'}\%('.join(siblings, '\|').'\)', 'ncbW')
-        if prev_block != 0
-          " It was found, use its line for the indent level
-          let block_head = prev_block
-          let indent_delta = 0
-        endif
-      endif
-    else
-      throw 'cont'
-    endif
-  else
-    throw 'cont'
+    return s:contextual_indent(a:line, line_kw)
   endif
 
-  return braceless#indent#space(block_head, indent_delta)[1]
+  throw 'cont'
 endfunction
 
 

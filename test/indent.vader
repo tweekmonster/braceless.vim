@@ -89,8 +89,8 @@ Expect python (properly formatted dict):
       },
   }
 
-Given python (func sig):
-========================
+Given python (func with no body or following blocks):
+=====================================================
   def example():
 
 Do (add statement below func sig):
@@ -106,11 +106,23 @@ Do (unindent after adding a blank line):
 ========================================
   A\<cr>\<cr>pass
 
-Expect python (statement on the same indent level as func sig):
-===============================================================
+Expect python (statement properly indented):
+============================================
   def example():
 
   pass
+
+Do (enter blank lines and retain indent):
+=========================================
+  A\<cr>\<cr>\<tab>\<cr>\<cr>pass
+
+Expect python (overindented pass):
+===========================
+  def example():
+
+      
+
+      pass
 
 Do (insert try+except without bodies):
 ======================================
@@ -216,3 +228,274 @@ Expect python (pass below print):
               pass
       print('hello')
       pass
+
+Given python (function and non-block):
+======================================
+  def example():
+      pass
+
+  test = 'something'
+
+Do (stay indented with function):
+=================================
+  jopass
+
+Expect python (second pass indented with function):
+===================================================
+  def example():
+      pass
+      pass
+
+  test = 'something'
+
+Do (unindent from function):
+============================
+  jo\<cr>pass
+
+Expect python (second pass unindented):
+=======================================
+  def example():
+      pass
+
+  pass
+
+  test = 'something'
+
+Do (insert line below non-block):
+=================================
+  Gopass
+
+Expect python (pass not indented with function):
+=========================================
+  def example():
+      pass
+
+  test = 'something'
+  pass
+
+Do (insert line and retain indent):
+===================================
+  jo\<cr>\<tab>\<cr>\<cr>pass\<esc>
+
+Expect python (second pass retain indent):
+==========================================
+  def example():
+      pass
+
+      
+
+      pass
+
+  test = 'something'
+
+Given python (try block):
+=========================
+  try:
+      if True:
+          print('true')
+      else:
+          print('false')
+
+Do (add except statement):
+==========================
+  Goexcept:
+
+Expect python (except statement indented with try):
+===================================================
+  try:
+      if True:
+          print('true')
+      else:
+          print('false')
+  except:
+
+Do (add more try block statements):
+===============================
+  Goexcept:\<cr>except:\<cr>else:\<cr>finally:
+
+Expect python (additonal blocks indeted with try):
+==================================================
+  try:
+      if True:
+          print('true')
+      else:
+          print('false')
+  except:
+  except:
+  else:
+  finally:
+
+Do (add another try with block statements):
+===========================================
+  Go\<cr>try:\<cr>if True:\<cr>print('yep')\<cr>elif False:
+  \<cr>print('nope')\<cr>else:\<cr>pass\<cr>except:\<cr>pass
+
+Expect python (nested try):
+===========================
+  try:
+      if True:
+          print('true')
+      else:
+          print('false')
+
+      try:
+          if True:
+              print('yep')
+          elif False:
+              print('nope')
+          else:
+              pass
+      except:
+          pass
+
+Do (add else statement):
+==========================
+  Goelse:
+
+Expect python (except statement indented with try):
+===================================================
+  try:
+      if True:
+          print('true')
+      else:
+          print('false')
+  else:
+
+Do (insert nested if statement):
+================================
+  Goif:\<cr>if:\<cr>if:\<cr>pass\<cr>else:\<cr>pass\<cr>\<bs>\<bs>elif:\<cr>pass
+
+Expect python (nested indent statements properly indented):
+===========================================================
+  try:
+      if True:
+          print('true')
+      else:
+          print('false')
+          if:
+              if:
+                  if:
+                      pass
+                  else:
+                      pass
+              elif:
+                  pass
+
+Do (insert nested if statement then reindent):
+==============================================
+  Goif:\<cr>if:\<cr>if:\<cr>pass\<cr>else:\<cr>pass\<cr>\<bs>\<bs>elif:\<cr>pass
+  \<esc>ggVG=
+
+Expect python (nested indent statements properly indented):
+===========================================================
+  try:
+      if True:
+          print('true')
+      else:
+          print('false')
+          if:
+              if:
+                  if:
+                      pass
+                  else:
+                      pass
+              elif:
+                  pass
+
+Given python (nested try and if with an extra else statement):
+==============================================================
+  try:
+      if True:
+          print('true')
+      else:
+      else:
+          print('false')
+          if:
+              if:
+                  if:
+                      pass
+                  else:
+                      pass
+              elif:
+                  pass
+
+Do (reindent entire buffer):
+============================
+  ggVG=
+
+Expect python (reindented block with if statement over indented):
+=================================================================
+-- Note: this is expected since there's no body to give context
+  try:
+      if True:
+          print('true')
+      else:
+  else:
+      print('false')
+      if:
+              if:
+                  if:
+                      pass
+                  else:
+                      pass
+              elif:
+                  pass
+
+Given python (nested try and if with extra else statement with bodies):
+=======================================================================
+  try:
+      if True:
+          print('true')
+      else:
+      else:
+          print('false')
+          if:
+              pass
+              if:
+                  pass
+                  if:
+                      pass
+                  else:
+                      pass
+              elif:
+                  pass
+
+Do (reindent entire buffer):
+============================
+  ggVG=
+  
+Expect python (properly reindented block):
+==========================================
+  try:
+      if True:
+          print('true')
+      else:
+  else:
+      print('false')
+      if:
+          pass
+          if:
+              pass
+              if:
+                  pass
+              else:
+                  pass
+          elif:
+              pass
+
+Given python (nested if else):
+==============================
+  if:
+      if:
+      else:
+
+Do (insert elif below else):
+============================
+  Goelif:
+
+Expect python (elif indented with first if):
+============================================
+  if:
+      if:
+      else:
+  elif:

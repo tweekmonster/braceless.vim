@@ -125,8 +125,12 @@ function! braceless#indent#expr(line)
       throw 'cont'
     endif
   catch /cont/
-    if a:line - prev > 1 || a:line == block[2] || a:line == block[3]
+    if a:line - prev > 2 && a:line > block[1]
+      return -1
+    elseif a:line > block[1] && a:line - prev > 1 || a:line == block[2] || a:line == block[3]
       return braceless#indent#space(block[2], 0)[1]
+    elseif prev > block[1]
+      return braceless#indent#space(prev, 0)[1]
     endif
     return braceless#indent#space(block[2], 1)[1]
   endtry
