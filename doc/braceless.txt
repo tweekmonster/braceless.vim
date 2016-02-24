@@ -146,6 +146,10 @@ position you at the end of the previous or next block heads.
 The object selection key is P, as in `iP` and `aP`.  These are always |linewise|
 operations.
 
+In Python, |]m|, |]M|, |[m|, and |[M| are available to move to `def` or
+`class` blocks.  They are analogous to what's described in |various-motions|,
+except the part about braces.
+
 All of the above key accept a |count| and can be used with an |operator|.
 
 

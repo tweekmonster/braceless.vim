@@ -244,8 +244,31 @@ Given python (segmented block gauntlet):
 
           print('you')
 
+Execute (move by method and class):
+===================================
+  normal ]m
+  AssertCursor 1, 7
+  normal ]m
+  AssertCursor 2, 9
+  normal ]M
+  AssertCursor 10, 28
+  normal 2]M
+  AssertCursor 26, 24
+  normal [m
+  AssertCursor 21, 9
+  normal 3[m
+  AssertCursor 1, 7
+  normal 38G
+  normal [m
+  AssertCursor 35, 9
+  normal 38G
+  normal ]M
+  AssertCursor 42, 20
+  normal [M
+  AssertCursor 33, 26
+
 Execute (move by block segments):
-=====================
+=================================
   normal \j
   AssertCursor 3, 9
   normal \j

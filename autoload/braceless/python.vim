@@ -200,6 +200,74 @@ function! s:check_delimitMate()
 endfunction
 
 
+let s:jump = '^\s*\%(def\|class\)\s*\zs\S\_.\{-}:\ze\s*\%(\_$\|#\)'
+
+
+function! <SID>braceless_method_jump(vmode, direction, top)
+  if a:vmode ==? 'v'
+    normal! gv
+  endif
+
+  let pos = getpos('.')[1:2]
+  let head = [0, 0]
+  let c = v:count1
+
+  if a:direction == 1 && a:top == 0 && braceless#scan_head(s:jump, 'nc') == pos
+    " Sitting right on top of a match so it can't count.
+    let c -= 1
+  endif
+
+  while c > 0
+    let h = braceless#scan_head(s:jump, a:direction == -1 ? 'b' : '')
+    if h[0] == 0
+      break
+    endif
+    let head = h
+    let c -= 1
+  endwhile
+
+  if head[0] == 0
+    let head = braceless#scan_head(s:jump, a:direction == 1 ? 'cb' : 'c')
+  endif
+
+  call cursor(pos)
+
+  if head[0] != 0
+    if a:top
+      execute 'normal! '.head[0].'G'.head[1].'|'
+    else
+      let block = braceless#get_block_lines(head[0], 1)
+      if a:direction == -1 && block[1] >= pos[0]
+        call cursor(head)
+        let head = braceless#scan_head(s:jump, 'b')
+        call cursor(pos)
+        if head[0] != 0
+          let block = braceless#get_block_lines(head[0], 1)
+        endif
+      elseif block[1] == pos[0]
+        call cursor(head)
+        let head = braceless#scan_head(s:jump, '')
+        call cursor(pos)
+        if head[0] != 0
+          let block = braceless#get_block_lines(head[0], 1)
+        endif
+      endif
+
+      if block[0] != 0
+        execute 'normal! '.block[1].'G$'
+      endif
+    endif
+  endif
+endfunction
+
+
+function! s:map(lhs, direction, top)
+  execute 'nnoremap <silent> <buffer>' a:lhs ':<C-u> call <SID>braceless_method_jump("n",' a:direction ',' a:top ')<cr>'
+  execute 'onoremap <silent> <buffer>' a:lhs ':<C-u> call <SID>braceless_method_jump("n",' a:direction ',' a:top ')<cr>'
+  execute 'vnoremap <silent> <buffer>' a:lhs ':<C-u> call <SID>braceless_method_jump(visualmode(),' a:direction ',' a:top ')<cr>'
+endfunction
+
+
 function! braceless#python#init()
   let s:pattern = '^\s*'.(braceless#get_pattern().start)
   call braceless#indent#add_handler('python', s:indent_handler)
@@ -208,4 +276,9 @@ function! braceless#python#init()
   if &l:indentexpr =~ 'braceless#'
     setlocal indentkeys=!^F,o,O,<:>,0),0],0},=elif,=except
   endif
+
+  call s:map('[m', -1, 1)
+  call s:map(']m', 1, 1)
+  call s:map('[M', -1, 0)
+  call s:map(']M', 1, 0)
 endfunction
