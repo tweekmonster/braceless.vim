@@ -42,6 +42,10 @@ endfunction
 function! braceless#indent#non_block(line, prev)
   let handler = get(s:handlers, &l:filetype, {})
   " Try collection pairs
+  let pos = getpos('.')
+  if getline(a:line) =~ s:collection[1]
+    keepjumps normal! ^
+  endif
   let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW', s:str_skip)
   if col_head[0] != a:line && col_head[0] > 0
     let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW', s:str_skip)
@@ -56,6 +60,7 @@ function! braceless#indent#non_block(line, prev)
 
     try
       if has_key(handler, 'collection')
+        call setpos('.', pos)
         return handler.collection(a:line, col_head, col_tail)
       else
         throw 'cont'
@@ -76,6 +81,7 @@ function! braceless#indent#non_block(line, prev)
 
     return braceless#indent#space(col_head[0], indent_delta)[1]
   endif
+  call setpos('.', pos)
 
   " Try docstrings
   if braceless#is_string(a:prev) || getline(a:line) =~ '\%("""\|''''''\)'
@@ -153,6 +159,7 @@ function! braceless#indent#expr(line)
   let prev = prevnonblank(a:line)
 
   try
+    " This must return as-is
     return braceless#indent#non_block(a:line, prev)
   catch /cont/
   endtry

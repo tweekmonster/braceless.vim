@@ -1,8 +1,13 @@
 Before (delimitMate config):
 ============================
-  BracelessEnable +indent +fold +highlight
   let g:delimitMate_expand_cr = 2
-  DelimitMateReload
+  DelimitMateOn
+  BracelessEnable +indent +fold +highlight
+
+After (delimitMate config):
+============================
+  unlet g:delimitMate_expand_cr
+  DelimitMateOff
 
 Given python (print statement):
 ===============================
@@ -58,3 +63,8 @@ Expect python (list expanded to 3 lines):
   [
       x
   ]
+
+Execute (delimitMate disable):
+==============================
+  let b:delimitMate_enabled = 0
+  DelimitMateOff

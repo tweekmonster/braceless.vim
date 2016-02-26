@@ -20,9 +20,9 @@ Execute (setup):
 
 Include: autocmd.vader
 Include: indent.vader
-Include: delimitMate.vader
 Include: motion.vader
 Include: terrible.vader
+Include: delimitMate.vader
 
 Execute (cleanup):
 ==================

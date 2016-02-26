@@ -2,6 +2,8 @@ source /rtp.vim
 
 filetype plugin indent on
 
+let delimitMate_offByDefault = 1
+
 augroup ssshhhhhh
   autocmd VimEnter * set visualbell t_vb=
   autocmd GUIEnter * set visualbell t_vb=
@@ -25,7 +27,9 @@ set foldlevelstart=10
 set foldnestmax=10
 set ttimeoutlen=0
 set cmdheight=5
+set textwidth=79
 
+set debug=msg,throw
 
 let mapleader=","
 

@@ -620,3 +620,123 @@ Expect python (properly indented garbage):
                   pass
           elif:
           else:
+
+Given python (func without arguments):
+======================================
+  def example
+
+Do (add multiline arguments after first argument):
+==================================================
+  A(foo,\<cr>bar,\<cr>baz):
+
+Expect python (func arguments indented with first argument):
+============================================================
+  def example(foo,
+              bar,
+              baz):
+
+Do (add multiline arguments after open paren):
+==============================================
+  A(\<cr>foo,\<cr>bar,\<cr>baz):
+
+Expect python (func arguments indented to level two beneath func):
+==================================================================
+  def example(
+          foo,
+          bar,
+          baz):
+
+
+Given python (PEP8 mangled examples):
+==================================
+  foo = long_function_name(var_one, var_two,
+  var_three, var_four)
+
+  def long_function_name(
+  var_one, var_two, var_three,
+          var_four):
+      print(var_one)
+
+  foo = long_function_name(
+                           var_one, var_two,
+                           var_three, var_four)
+
+  foo = long_function_name(var_one, var_two,
+      var_three, var_four)
+
+  def long_function_name(
+      var_one, var_two, var_three,
+      var_four):
+      print(var_one)
+
+  my_list = [
+      1, 2, 3,
+      4, 5, 6,
+      ]
+
+  result = some_function_that_takes_arguments(
+      'a', 'b', 'c',
+      'd', 'e', 'f',
+      )
+
+Do (reindent PEP8 examples):
+============================
+  =G
+
+
+Expect python (PEP8 examples reindented):
+=========================================
+  foo = long_function_name(var_one, var_two,
+                           var_three, var_four)
+
+  def long_function_name(
+          var_one, var_two, var_three,
+          var_four):
+      print(var_one)
+
+  foo = long_function_name(
+      var_one, var_two,
+      var_three, var_four)
+
+  foo = long_function_name(var_one, var_two,
+                           var_three, var_four)
+
+  def long_function_name(
+          var_one, var_two, var_three,
+          var_four):
+      print(var_one)
+
+  my_list = [
+      1, 2, 3,
+      4, 5, 6,
+  ]
+
+  result = some_function_that_takes_arguments(
+      'a', 'b', 'c',
+      'd', 'e', 'f',
+  )
+
+Given python (long function arguments):
+=======================================
+  foo = long_function_name(var_one, var_two, var_three, var_four, var_five, var_six, var_seven, var_eight)
+
+Do (format long argument line):
+===============================
+  gqq
+
+Expect python (long function arguments broken into two lines):
+==============================================================
+  foo = long_function_name(var_one, var_two, var_three, var_four, var_five,
+                           var_six, var_seven, var_eight)
+
+Given python (blank buffer):
+============================
+
+Do (type long function arguments):
+==================================
+  ifoo = long_function_name(var_one, var_two, var_three, var_four, var_five, var_six, var_seven, var_eight)
+
+Expect python (long function arguments broken into two lines):
+==============================================================
+  foo = long_function_name(var_one, var_two, var_three, var_four, var_five,
+                           var_six, var_seven, var_eight)

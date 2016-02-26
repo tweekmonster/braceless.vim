@@ -1,19 +1,18 @@
 let s:indent_handler = {}
-let s:call_pattern = '\S\+(\zs\_.\{-}\ze)'
-let s:pattern = ''
+let s:call_pattern = '\k\+\s*(\zs\_.\{-}\ze)\?'
+let s:if_pattern = 'if\s*(\zs\_.\{-}\ze)\?'
+let s:stmt_pattern = 'def '.s:call_pattern
 
 
 " This function exists because the repetition below felt dirty.
-function! s:get_block_indent(pattern, line, col_head, col_tail, lonely_head_indent)
+function! s:get_block_indent(pattern, line, col_head, col_tail, lonely_head_indent, greedy)
   let head = search(a:pattern, 'bW')
-  if head != 0
-    if a:col_head[0] == head && getline(head) =~ '(\s*$'
+  if head != 0 && a:col_head[0] == head
+    let lonely = getline(head) =~ '(\s*$'
+    if lonely && a:line == a:col_tail[0] && getline(a:line) =~ '^\s*\%()\|}\|\]\)\s*$'
+      return braceless#indent#space(head, 0)[1]
+    elseif a:greedy || lonely
       return braceless#indent#space(head, a:lonely_head_indent)[1]
-    endif
-
-    let tail = search(a:pattern, 'enW')
-    if a:col_head[0] == head && a:col_tail[0] <= tail
-      return a:col_head[1]
     endif
   endif
   return -1
@@ -33,14 +32,20 @@ function! s:indent_handler.collection(line, col_head, col_tail)
   let pos = getpos('.')[1:2]
   call cursor(a:line, 0)
 
-  let i = s:get_block_indent(s:pattern, a:line, a:col_head, a:col_tail, 2)
+  " Special case for if statements using parenthesis to indent
+  let i = s:get_block_indent(s:if_pattern, a:line, a:col_head, a:col_tail, 2, 1)
+  if i != -1
+    return i
+  endif
+
+  let i = s:get_block_indent(s:stmt_pattern, a:line, a:col_head, a:col_tail, 2, 0)
   if i != -1
     return i
   endif
 
   call cursor(pos)
 
-  let i = s:get_block_indent(s:call_pattern, a:line, a:col_head, a:col_tail, 1)
+  let i = s:get_block_indent(s:call_pattern, a:line, a:col_head, a:col_tail, 1, 0)
   if i != -1
     return i
   endif
@@ -48,8 +53,11 @@ function! s:indent_handler.collection(line, col_head, col_tail)
   call cursor(pos)
 
   if a:line == a:col_tail[0] && a:col_head[0] != a:col_tail[0]
-    if getline(a:col_head[0]) !~ '\%((\|{\|\[\)\s*$'
+    let head = getline(a:col_head[0])
+    if head !~ '\%((\|{\|\[\)\s*$'
       return a:col_head[1]
+    elseif getline(a:col_tail[0]) !~ '^\s*\%()\|}\|\]\),\?\s*$'
+      return braceless#indent#space(a:col_head[0], 1)[1]
     endif
     return braceless#indent#space(a:col_head[0], 0)[1]
   endif
@@ -158,6 +166,11 @@ function! s:indent_handler.block(line, block)
   " determine a parent or sibling block
   if a:block[2] == a:line
     call cursor(prev, 0)
+  elseif a:block[3] == a:line && text =~ '):'
+    try
+      return braceless#indent#non_block(a:line, a:line)
+    catch /cont/
+    endtry
   endif
 
   let pat = '^\s*'.braceless#get_pattern().start
@@ -186,7 +199,7 @@ endfunction
 " delimitMate_expand_cr = 2 is great for assignments, but not for functions
 " and whatnot.
 function! s:override_delimitMate_cr()
-  if search(s:call_pattern, 'nbeW') != line('.')
+  if get(b:, 'delimitMate_enabled', 0) && search(s:call_pattern, 'nbeW') != line('.')
     return delimitMate#ExpandReturn()
   endif
   return "\<cr>"
