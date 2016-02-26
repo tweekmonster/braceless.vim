@@ -218,7 +218,7 @@ function! s:best_indent(line)
 endfunction
 
 
-let s:syn_string = '\%(String\|Heredoc\)$'
+let s:syn_string = '\%(String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\)$'
 let s:syn_comment = '\%(Comment\|Todo\)$'
 
 function! braceless#is_string(line, ...)
