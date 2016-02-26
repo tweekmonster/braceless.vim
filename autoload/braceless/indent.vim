@@ -30,7 +30,7 @@ endfunction
 " Indent
 let s:handlers = {}
 let s:str_skip = "synIDattr(synID(line('.'), col('.'), 1), 'name')"
-                  \." =~ '\\%(Comment\\|Todo\\|String\\|DoctestValue\\|DocTest\\|DocTest2\\)$'"
+                  \." =~? '\\%(Comment\\|Todo\\|String\\|DoctestValue\\|DocTest\\|DocTest2\\)$'"
 let s:collection = ['(\|{\|\[', ')\|}\|\]']
 
 
