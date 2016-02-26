@@ -740,3 +740,69 @@ Expect python (long function arguments broken into two lines):
 ==============================================================
   foo = long_function_name(var_one, var_two, var_three, var_four, var_five,
                            var_six, var_seven, var_eight)
+
+Given python (double quote doctest):
+====================================
+  def print_bracket():
+      """
+      Prints a bracket.
+
+      Here's an example:
+
+          >>> print_bracket()
+          (
+  
+      """
+      print "("
+
+Do (insert new line):
+=====================
+  Gox
+
+Expect python (x on correct indent level):
+==========================================
+  def print_bracket():
+      """
+      Prints a bracket.
+
+      Here's an example:
+
+          >>> print_bracket()
+          (
+  
+      """
+      print "("
+      x
+
+Given python (single quote doctest):
+====================================
+  def print_bracket():
+      '''
+      Prints a bracket.
+
+      Here's an example:
+
+          >>> print_bracket()
+          (
+  
+      '''
+      print "("
+
+Do (insert new line):
+=====================
+  Gox
+
+Expect python (x on correct indent level):
+==========================================
+  def print_bracket():
+      '''
+      Prints a bracket.
+
+      Here's an example:
+
+          >>> print_bracket()
+          (
+  
+      '''
+      print "("
+      x
