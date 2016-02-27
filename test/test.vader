@@ -21,6 +21,7 @@ Execute (setup):
 Include: autocmd.vader
 Include: indent.vader
 Include: motion.vader
+Include: selection.vader
 Include: terrible.vader
 Include: delimitMate.vader
 

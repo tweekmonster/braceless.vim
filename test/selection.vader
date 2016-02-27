@@ -1,0 +1,292 @@
+Before:
+=======
+  BracelessEnable +indent +fold +highlight
+
+Given python (multiline block head):
+====================================
+  def example(arg1, arg2,  # Comment
+              arg3, arg4): # Comment
+      if True:
+          pass
+  # end
+
+Do (delete body):
+=================
+  diP
+
+Expect python (body deleted):
+=============================
+  def example(arg1, arg2,  # Comment
+              arg3, arg4): # Comment
+  # end
+
+Do (delete function):
+=====================
+  daP
+
+Expect python (function deleted):
+=================================
+  # end
+
+Do (change body):
+=================
+  ciPx
+
+Expect python (body changed):
+=============================
+  def example(arg1, arg2,  # Comment
+              arg3, arg4): # Comment
+      x
+  # end
+
+Do (change function):
+=====================
+  caPx
+
+Expect python (function chaned):
+================================
+  x
+  # end
+
+Do (yank body and paste above):
+===============================
+  yiPP
+
+Expect python (body copied and pasted above body):
+==================================================
+  def example(arg1, arg2,  # Comment
+              arg3, arg4): # Comment
+      if True:
+          pass
+      if True:
+          pass
+  # end
+
+Do (yank function and paste above):
+===================================
+  yaPP
+
+Expect python (function copied and pasted above):
+=================================================
+  def example(arg1, arg2,  # Comment
+              arg3, arg4): # Comment
+      if True:
+          pass
+  def example(arg1, arg2,  # Comment
+              arg3, arg4): # Comment
+      if True:
+          pass
+  # end
+
+Do (select body and substitute):
+================================
+  viPspass
+
+Expect python (selected body replaced):
+=======================================
+  def example(arg1, arg2,  # Comment
+              arg3, arg4): # Comment
+      pass
+  # end
+
+Do (select body and substitute):
+================================
+  vaPspass
+
+Expect python (selected function replaced):
+===========================================
+  pass
+  # end
+
+Given python (simple blocks):
+=============================
+  def example():
+      """Doc string
+      """
+      test = """hello
+   world"""
+
+      if True \
+              and True:
+          print('so true')
+      else:
+          try:
+              raise Exception
+          except:
+              pass
+
+  def example2():
+      pass
+
+Do (select if body and substitute):
+===================================
+  viPiPsx
+
+Expect python (simple blocks):
+==============================
+  def example():
+      """Doc string
+      """
+      test = """hello
+   world"""
+
+      if True \
+              and True:
+          x
+      else:
+          try:
+              raise Exception
+          except:
+              pass
+
+  def example2():
+      pass
+
+Do (select functon from if block and substitute):
+=================================================
+  viPiPaPaPsx
+
+Expect python (function replaced):
+==================================
+  x
+
+  def example2():
+      pass
+
+Do (indent function body):
+==========================
+  >iP
+
+Expect python (indented function body):
+=======================================
+  def example():
+          """Doc string
+          """
+          test = """hello
+       world"""
+
+          if True \
+                  and True:
+              print('so true')
+          else:
+              try:
+                  raise Exception
+              except:
+                  pass
+
+  def example2():
+      pass
+
+Do (indent block):
+==================
+  >aP
+
+Expect python (function indented):
+==================================
+      def example():
+          """Doc string
+          """
+          test = """hello
+       world"""
+
+          if True \
+                  and True:
+              print('so true')
+          else:
+              try:
+                  raise Exception
+              except:
+                  pass
+
+  def example2():
+      pass
+
+Do (dedent function body):
+==========================
+  <iP
+
+
+Expect python (dedented function body):
+=======================================
+  def example():
+  """Doc string
+  """
+  test = """hello
+  world"""
+
+  if True \
+          and True:
+      print('so true')
+  else:
+      try:
+          raise Exception
+      except:
+          pass
+
+  def example2():
+      pass
+
+Do (count indent then dedent function):
+=======================================
+  2>aP<aP
+
+Expect python (function indented):
+==================================
+      def example():
+          """Doc string
+          """
+          test = """hello
+       world"""
+
+          if True \
+                  and True:
+              print('so true')
+          else:
+              try:
+                  raise Exception
+              except:
+                  pass
+
+  def example2():
+      pass
+
+Given python (block without body):
+===========================
+  def example():
+
+  pass
+
+  pass
+
+  if True:
+      pass
+
+Do (indent body):
+  >iP
+
+Expect python (contiguous non-block lines adopted as body):
+===========================================================
+  def example():
+
+      pass
+
+      pass
+
+  if True:
+      pass
+
+Do (add another empty block above):
+===================================
+  Odef example():\<esc>>iPj>iP
+
+Expect python (nested functions indented with adopted lines):
+=============================================================
+  def example():
+      def example():
+
+          pass
+
+          pass
+
+  if True:
+      pass

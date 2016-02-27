@@ -39,23 +39,6 @@ let s:pattern_default.coffee = {
 " - Close the atoms
 
 
-" Gets the byte index of a buffer position
-function! s:pos2byte(pos)
-  let p = getpos(a:pos)
-  return line2byte(p[1]) + p[2]
-endfunction
-
-
-" Tests if there is selected text
-function! s:is_selected()
-  let pos = s:pos2byte('.')
-  let m_start = s:pos2byte("'<")
-  let m_end = s:pos2byte("'>")
-
-  return m_start != -1 && m_end != -1 && pos == m_start && pos != m_end
-endfunction
-
-
 " Get the indented block by finding the first line that matches a pattern that
 " looks for a lower indent level.
 function! s:get_block_end(start, pattern)
@@ -94,92 +77,62 @@ endfunction
 
 
 " Build a pattern that is suitable for the current line and indent level
-function! s:build_pattern(line, base, motion, selected, ...)
+function! s:build_pattern(line, base, ...)
   let pat = '^\s*'.a:base
   let ignore_empty = 0
   if a:0 != 0
     let ignore_empty = a:1
   endif
 
-  " Get a line with a lower indent level than the current line to figure out
-  " whether or not this line can actually determine the parent block.
-  let [indent_char, indent_len] = braceless#indent#space(a:line, -1)
-  let prev_unindent = search('^'.indent_char.'\{-,'.indent_len.'}\S', 'nbW')
-  if indent_len != 0 && prev_unindent != 0 && getline(prev_unindent) !~ pat
-    " The current line is indented under a non-block line.  This might mean
-    " line continuations, lists, or something.  Try again.
-    call cursor(prev_unindent, col('.'))
-    let head = braceless#scan_head(pat, 'cb')
-
-    " Though this is recursive, it'll stop before it hits the first column.
-    " Performance is a consideration, but if unexpected indentation is that
-    " deep, there are more pressing matters that the user is facing.
-    return s:build_pattern(head[0], a:base, a:motion, a:selected, ignore_empty)
-  endif
-
   let flag = 'bc'
   let text = getline(a:line)
 
-  if a:selected
-    let indent_delta = 0
-    if a:motion ==# 'i'
-      " Moving inward, include current line
-      let flag = 'c'
-      let indent_delta = 1
-    else
-      " Moving outward, don't include current line
-      let flag = 'b'
-    endif
-    let [indent_char, indent_len] = braceless#indent#space(a:line, indent_delta - 1)
-    let pat = '^'.indent_char.'\{,'.indent_len.'}'
+  let indent_delta = 0
+  let indent_line = a:line
+  if text =~ '^\s*$'
+    let indent_delta = -1
   else
-    let indent_delta = 0
-    let indent_line = a:line
-    if text =~ '^\s*$'
-      let indent_delta = -1
+    " motions can get screwed up if initiated from within a docstring
+    " that's under indented.
+    if braceless#is_string(a:line)
+      let docstring = braceless#docstring(a:line)
+      if docstring[0] != 0
+        let indent_line = docstring[0]
+      endif
+    endif
+
+    " Try matching a multi-line block start
+    " The window state should be saved before this, so no need to restore
+    " the curswant
+    let pos = getpos('.')
+    call cursor(indent_line, col([indent_line, '$']))
+    let pos2 = getpos('.')
+    let head = searchpos(pat, 'cbW')
+    let tail = searchpos(pat, 'ceW')
+    call setpos('.', pos)
+    if tail[0] == pos2[1] || head[0] == pos2[1]
+      let indent_line = head[0]
+      let indent_delta = 0
+      " Move to the head line
+      call setpos('.', pos2)
     else
-      " motions can get screwed up if initiated from within a docstring
-      " that's under indented.
-      if braceless#is_string(a:line)
-        let docstring = braceless#docstring(a:line)
-        if docstring[0] != 0
-          let indent_line = docstring[0]
-        endif
-      endif
-
-      " Try matching a multi-line block start
-      " The window state should be saved before this, so no need to restore
-      " the curswant
-      let pos = getpos('.')
-      call cursor(indent_line, col([indent_line, '$']))
-      let pos2 = getpos('.')
-      let head = searchpos(pat, 'cbW')
-      let tail = searchpos(pat, 'ceW')
-      call setpos('.', pos)
-      if tail[0] == pos2[1] || head[0] == pos2[1]
-        let indent_line = head[0]
-        let indent_delta = 0
-        " Move to the head line
-        call setpos('.', pos2)
-      else
-        let indent_delta = -1
-      endif
+      let indent_delta = -1
     endif
-
-    let [indent_char, indent_len] = braceless#indent#space(indent_line, indent_delta)
-
-    " Even though we found the indent level of a block, make sure it has a
-    " body.  If it doesn't, lower the indent level by one.
-    if !ignore_empty && getline(indent_line) =~ '^\s*'.a:base
-      let nextline = nextnonblank(indent_line + 1)
-      let [_, indent_len2] = braceless#indent#space(nextline, indent_delta)
-      if indent_len >= indent_len2
-        let [_, indent_len] = braceless#indent#space(indent_line, indent_delta - 1)
-      endif
-    endif
-
-    let pat = '^'.indent_char.'\{-,'.indent_len.'}'
   endif
+
+  let [indent_char, indent_len] = braceless#indent#space(indent_line, indent_delta)
+
+  " Even though we found the indent level of a block, make sure it has a
+  " body.  If it doesn't, lower the indent level by one.
+  if !ignore_empty && getline(indent_line) =~ '^\s*'.a:base
+    let nextline = nextnonblank(indent_line + 1)
+    let [_, indent_len2] = braceless#indent#space(nextline, indent_delta)
+    if indent_len >= indent_len2
+      let [_, indent_len] = braceless#indent#space(indent_line, indent_delta - 1)
+    endif
+  endif
+
+  let pat = '^'.indent_char.'\{-,'.indent_len.'}'
 
   if a:base !~ '\\zs'
     let pat .= '\zs'
@@ -336,17 +289,10 @@ endfunction
 
 
 " Select an indent block using ~magic~
-function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ...)
-  let has_selection = 0
+function! braceless#select_block(pattern, ...)
   let ignore_empty = 0
   if a:0 != 0
     let ignore_empty = a:1
-  endif
-
-  if a:op == ''
-    let has_selection = s:is_selected()
-  elseif a:op == '<' || a:op == '>'
-    let ignore_empty = 1
   endif
 
   let saved_view = winsaveview()
@@ -355,17 +301,13 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ..
     return 0
   endif
 
-  let [pat, flag] = s:build_pattern(c_line, a:pattern.start, a:motion, has_selection, ignore_empty)
+  let [pat, flag] = s:build_pattern(c_line, a:pattern.start, ignore_empty)
 
   let head = braceless#scan_head(pat, flag)
   let tail = braceless#scan_tail(pat, head)
 
   if head[0] == 0 || tail[0] == 0
-    if a:keymode ==# 'v'
-      normal! gV
-    else
-      call winrestview(saved_view)
-    endif
+    call winrestview(saved_view)
     return [c_line, c_line, head[0], tail[0]]
   endif
 
@@ -378,48 +320,13 @@ function! braceless#select_block(pattern, motion, keymode, vmode, op, select, ..
   let startline = nextnonblank(tail[0] + 1)
   let lastline = s:get_block_end(startline, pat)
 
-  if a:motion ==# 'i'
-    if lastline < startline
-      if a:op == '<' || a:op == '>'
-        let lastline = s:get_block_until_blank(startline)
-        let [indent_char, indent_len] = braceless#indent#space(head[0], 1)
-        call cursor(tail[0] + 1, indent_len + 1)
-      else
-        call cursor(tail[0], 0)
-      endif
-    else
-      let [indent_char, indent_len] = braceless#indent#space(head[0], 1)
-      call cursor(tail[0] + 1, indent_len + 1)
-    endif
-  endif
-
-  " TODO: Revisit this and make sure none of this is superfluous or just bad
-  if a:op != '' || (!empty(a:vmode) && a:select == 1 && a:keymode == 'v')
-    normal! V
-  endif
+  call winrestview(saved_view)
 
   if lastline < startline
-    if a:select == 1
-      call cursor(tail[0], tail[1])
-    else
-      call winrestview(saved_view)
-    endif
     return [lastline, lastline, head[0], tail[0]]
   endif
 
-  let end = col([lastline, '$'])
-
-  if a:select == 1
-    call cursor(lastline, end - 1)
-  else
-    call winrestview(saved_view)
-  endif
-
-  if a:motion ==# 'a'
-    let startline = head[0]
-  endif
-
-  return [startline, lastline, head[0], tail[0]]
+  return [head[0], lastline, head[0], tail[0]]
 endfunction
 
 
@@ -468,7 +375,7 @@ function! braceless#get_block_lines(line, ...)
     let ignore_empty = a:1
   endif
   call cursor(a:line, col([a:line, '$']))
-  let block = braceless#select_block(pattern, 'a', 'n', '', '', 0, ignore_empty)
+  let block = braceless#select_block(pattern, ignore_empty)
   call winrestview(saved)
   if type(block) != 3
     return
@@ -495,21 +402,6 @@ function! braceless#get_parent_block_lines(line, ...)
   let parent = braceless#get_block_lines(sub)
   call winrestview(saved)
   return [parent, block]
-endfunction
-
-
-" Kinda like black ops, but more exciting.
-function! braceless#block_op(motion, keymode, vmode, op, count)
-  let pattern = braceless#get_pattern()
-
-  let i = a:count - 1
-  while i > 0
-    let i -= 1
-    let block = braceless#get_block_lines(line('.'))
-    call cursor(block[2] - 1, 0)
-  endwhile
-
-  call braceless#select_block(pattern, a:motion, a:keymode, a:vmode, a:op, 1)
 endfunction
 
 
