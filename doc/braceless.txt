@@ -146,6 +146,18 @@ position you at the end of the previous or next block heads.
 The object selection key is P, as in `iP` and `aP`.  These are always |linewise|
 operations.
 
+`iP` selects the block body.  Repeating `iP` in visual mode will select body
+of the next indent level block.
+
+`aP` selects the entire block.  Repeating `aP` in visual mode will select the
+parent block.  If the currently selected block has decorators, they will be
+selected before selecting the parent block.
+
+Using the |<| and |>| indent operators on a block with no body will select
+contiguous non-block lines with no more than 1 blank line between them.
+Blocks that are immediately below the operative line or the aforementioned
+non-block lines, they will be indented as well.
+
 In Python, |]m|, |]M|, |[m|, and |[M| are available to move to `def` or
 `class` blocks.  They are analogous to what's described in |various-motions|,
 except the part about braces.
