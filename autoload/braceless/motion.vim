@@ -40,6 +40,21 @@ function! s:indent_scan(delta, flags, stopline)
 endfunction
 
 
+function! s:is_decorator_line(pattern)
+  if !empty(a:pattern.decorator)
+    let pos = getpos('.')
+    let head = braceless#scan_head(a:pattern.decorator, 'bc')[0]
+    let tail = braceless#scan_head(a:pattern.decorator, 'ec')[0]
+    call setpos('.', pos)
+    if head != 0 && pos[1] >= head && pos[1] <= tail
+      return 1
+    endif
+  endif
+
+  return 0
+endfunction
+
+
 function! s:iterate_selection(motion, op)
   let pattern = braceless#get_pattern()
 
@@ -52,46 +67,65 @@ function! s:iterate_selection(motion, op)
 
   if a:op != ''
     " If this is an operation, always operate based on the current line
-    let block = braceless#get_block_lines(line('.'), 1)
+    let block = braceless#get_block_lines(c_line, 1)
     if a:motion == 'a'
       let sel_start = block[0]
     else
       let sel_start = block[3] + 1
     endif
     let sel_end = block[1]
-  elseif a:motion == 'a' && !s:has_selection
-    " There is no selection, scan up for a block
-    let sel_start = s:indent_scan(-1, 'cb', 0)
   elseif s:has_selection
     let sel_start = prevnonblank(s:vstart)
     let sel_end = s:vend
+    let block = braceless#get_block_lines(sel_start, 1)
 
-    if a:motion == 'a' && braceless#indent#level(sel_start, 0) > 0
+    if a:motion == 'a'
       " There is a selection and we aren't on the first column, scan up for a
       " parent block.
       call cursor(sel_start, 1)
-      let sel_start = s:indent_scan(-1, 'b', 0)
+      " let block = braceless#get_block_lines(sel_start)
+      if braceless#scan_head(pat, 'nbc')[0] == sel_start && sel_start > block[0]
+        let sel_start = block[0]
+        let sel_end = block[1]
+      elseif braceless#indent#level(sel_start, 0) > 0
+        let sel_start = s:indent_scan(-1, 'b', 0)
+        let new_block = braceless#get_block_lines(sel_start, 1)
+        let sel_end = new_block[1]
+      endif
     elseif a:motion == 'i'
       " There is a selection, scan inward to the closest block
-      let block = braceless#get_block_lines(sel_start, 1)
-      if block[0] == c_line
-        let sel_start = block[3] + 1
-        call cursor(sel_start, 1)
-      elseif block[3] < sel_start
+      if sel_start == block[3] + 1 && sel_end == block[1]
         let new_block = braceless#get_block_lines(s:indent_scan(0, 'n', 0), 1)
         if new_block[1] <= block[1]
           let block = new_block
           let sel_start = block[3] + 1
           call cursor(sel_start, 1)
         endif
-      else
-        call cursor(block[0], 1)
+      elseif sel_start >= block[0] && sel_start <= block[1]
+        let sel_start = block[3] + 1
+        call cursor(sel_start, 1)
       endif
       let sel_end = block[1]
     endif
   else
-    " Just find the closest containing block
-    call braceless#scan_head(pat, 'bc')[0]
+    if a:motion == 'i'
+      " Just find the closest containing block
+      call braceless#scan_head(pat, s:is_decorator_line(pattern) ? 'c' : 'bc')[0]
+    elseif a:motion == 'a'
+      let block = braceless#get_block_lines(c_line, 1)
+      if c_line >= block[0] && c_line <= block[3]
+        if c_line < block[2]
+          " If the line is above the block head, start there.  Most likely
+          " decorators.
+          let sel_start = block[0]
+        else
+          " Otherwise, start at the block head
+          let sel_start = block[2]
+        endif
+      else
+        let sel_start = s:indent_scan(-1, s:is_decorator_line(pattern) ? 'c' : 'bc', 0)
+      endif
+    endif
   endif
 
   let sel_block = braceless#get_block_lines(line('.'), 1)
@@ -111,11 +145,11 @@ function! s:iterate_selection(motion, op)
   endif
 
   if sel_end == -1
-    let sel_end = sel_block[1]
+    let sel_end = max([1, sel_start, sel_block[1]])
   endif
 
   let s:vstart = sel_start
-  let s:vend = max([sel_end, sel_start, sel_block[1]])
+  let s:vend = sel_end
   let s:has_selection = 1
 endfunction
 
@@ -169,6 +203,7 @@ endfunction
 
 
 function! braceless#motion#select(motion, op)
+  redir >> /tmp/ops.log
   " Start with the current selection.  These change in s:iterate_selection()
   let s:vstart = getpos("'<")[1]
   let s:vend = getpos("'>")[1]
@@ -202,4 +237,5 @@ function! braceless#motion#select(motion, op)
   if s:vstart != 0 && s:vend != 0
     execute 'keepjumps normal! '.s:vstart.'G^V'.s:vend.'G$'
   endif
+  redir END
 endfunction

@@ -13,6 +13,7 @@ let s:pattern_cache = {}
 let s:pattern_default = {}
 let s:pattern_default.python = {
       \   'start': '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:\ze\s*\%(\_$\|#\)',
+      \   'decorator': '\_^\s*@\%(\k\|\.\)\+\%((\_.\{-})\)\?\_$',
       \   'end': '\S',
       \}
 let s:pattern_default.coffee = {
@@ -77,8 +78,8 @@ endfunction
 
 
 " Build a pattern that is suitable for the current line and indent level
-function! s:build_pattern(line, base, ...)
-  let pat = '^\s*'.a:base
+function! s:build_pattern(line, pattern, ...)
+  let pat = '^\s*'.a:pattern.start
   let ignore_empty = 0
   if a:0 != 0
     let ignore_empty = a:1
@@ -87,11 +88,10 @@ function! s:build_pattern(line, base, ...)
   let flag = 'bc'
   let text = getline(a:line)
 
-  let indent_delta = 0
+  let indent_delta = -1
   let indent_line = a:line
-  if text =~ '^\s*$'
-    let indent_delta = -1
-  else
+
+  if text !~ '^\s*$'
     " motions can get screwed up if initiated from within a docstring
     " that's under indented.
     if braceless#is_string(a:line)
@@ -107,16 +107,31 @@ function! s:build_pattern(line, base, ...)
     let pos = getpos('.')
     call cursor(indent_line, col([indent_line, '$']))
     let pos2 = getpos('.')
-    let head = searchpos(pat, 'cbW')
-    let tail = searchpos(pat, 'ceW')
+
+    let head = braceless#scan_head(pat, 'bc')[0]
+    let tail = braceless#scan_head(pat, 'ec')[0]
     call setpos('.', pos)
-    if tail[0] == pos2[1] || head[0] == pos2[1]
-      let indent_line = head[0]
+
+    if head != 0 && indent_line >= head && indent_line <= tail
+      " Check if we're on a block head and keep the current indent
+      let indent_line = head
       let indent_delta = 0
-      " Move to the head line
       call setpos('.', pos2)
     else
-      let indent_delta = -1
+      if !empty(a:pattern.decorator)
+        call setpos('.', pos2)
+        let head = braceless#scan_head(a:pattern.decorator, 'bc')[0]
+        let tail = braceless#scan_head(a:pattern.decorator, 'ec')[0]
+        call setpos('.', pos)
+        if head != 0 && indent_line >= head && indent_line <= tail
+          " Check if we're on a decorator line and keep the current indent and
+          " set flag to search forward
+          let indent_line = head
+          let indent_delta = 0
+          call setpos('.', pos2)
+          let flag = ''
+        endif
+      endif
     endif
   endif
 
@@ -124,7 +139,7 @@ function! s:build_pattern(line, base, ...)
 
   " Even though we found the indent level of a block, make sure it has a
   " body.  If it doesn't, lower the indent level by one.
-  if !ignore_empty && getline(indent_line) =~ '^\s*'.a:base
+  if !ignore_empty && braceless#scan_head('^\s*'.a:pattern.start, 'nc')[0] == indent_line
     let nextline = nextnonblank(indent_line + 1)
     let [_, indent_len2] = braceless#indent#space(nextline, indent_delta)
     if indent_len >= indent_len2
@@ -134,10 +149,10 @@ function! s:build_pattern(line, base, ...)
 
   let pat = '^'.indent_char.'\{-,'.indent_len.'}'
 
-  if a:base !~ '\\zs'
+  if a:pattern.start !~ '\\zs'
     let pat .= '\zs'
   endif
-  let pat .= a:base
+  let pat .= a:pattern.start
 
   return [pat, flag]
 endfunction
@@ -301,7 +316,7 @@ function! braceless#select_block(pattern, ...)
     return 0
   endif
 
-  let [pat, flag] = s:build_pattern(c_line, a:pattern.start, ignore_empty)
+  let [pat, flag] = s:build_pattern(c_line, a:pattern, ignore_empty)
 
   let head = braceless#scan_head(pat, flag)
   let tail = braceless#scan_tail(pat, head)
@@ -317,16 +332,29 @@ function! braceless#select_block(pattern, ...)
   let [indent_char, indent_len] = braceless#indent#space(head[0], 0)
   let pat = '^'.indent_char.'\{,'.indent_len.'}'.a:pattern.stop
 
-  let startline = nextnonblank(tail[0] + 1)
-  let lastline = s:get_block_end(startline, pat)
+  let block_start = head[0]
+  let body_start = nextnonblank(tail[0] + 1)
+  let block_end = s:get_block_end(body_start, pat)
+
+  if !empty(a:pattern.decorator)
+    let [indent_char, indent_len] = braceless#indent#space(head[0], 0)
+    while 1
+      let decorator_tail = search(a:pattern.decorator, 'beW')
+      if decorator_tail != 0 && block_start - decorator_tail == 1
+        let block_start = search(a:pattern.decorator, 'bW')
+        continue
+      endif
+      break
+    endwhile
+  endif
 
   call winrestview(saved_view)
 
-  if lastline < startline
-    return [lastline, lastline, head[0], tail[0]]
+  if block_end < body_start
+    return [block_end, block_end, head[0], tail[0]]
   endif
 
-  return [head[0], lastline, head[0], tail[0]]
+  return [block_start, block_end, head[0], tail[0]]
 endfunction
 
 
@@ -348,6 +376,7 @@ function! braceless#get_pattern(...)
           \   'stop': stop_pat,
           \   'jump': get(pat, 'jump', get(def, 'jump', start_pat)),
           \   'easymotion': get(pat, 'easymotion', get(def, 'easymotion', start_pat)),
+          \   'decorator': get(pat, 'decorator', get(def, 'decorator', '')),
           \ }
   endif
   return get(s:pattern_cache, lang)

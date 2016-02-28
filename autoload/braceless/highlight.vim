@@ -135,5 +135,5 @@ function! braceless#highlight#update(force)
   endif
 
   let w:braceless_highlight_cache = [pblock, indent_level, block]
-  call s:highlight_line(block[0], block[1])
+  call s:highlight_line(block[3], block[1])
 endfunction

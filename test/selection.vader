@@ -290,3 +290,153 @@ Expect python (nested functions indented with adopted lines):
 
   if True:
       pass
+
+Given python (decorated function before another function):
+==========================================================
+  @decorator
+  def example1():
+      pass
+
+  def example2():
+      pass
+
+Do (select undecorated function):
+=================================
+  5GvaPaPsx
+
+Expect python (undecorated function replaced):
+==============================================
+- Should avoid selecting up to the previous decorator
+  @decorator
+  def example1():
+      pass
+
+  x
+
+Given python (very decorated functions):
+========================================
+  @decorator
+  def example1():
+      pass
+
+  @decorator
+  @decorator('arg', 'arg',
+             'arg', 'arg', 'arg')
+  @decorator('arg')
+  def example2():
+      pass
+
+Do (replace second decorated function):
+=======================================
+  GvaPsx
+
+Expect python (second decorated function replaced):
+===================================================
+  @decorator
+  def example1():
+      pass
+
+  @decorator
+  @decorator('arg', 'arg',
+             'arg', 'arg', 'arg')
+  @decorator('arg')
+  x
+
+Do (select second function from decorator line and replace):
+============================================================
+  6GvaPsx
+
+Expect python (second function and decorators replaced):
+========================================================
+  @decorator
+  def example1():
+      pass
+
+  x
+
+Do (change function body from decorator line):
+==============================================
+  6GciPx
+
+Expect python (second function body replaced):
+=======================================
+  @decorator
+  def example1():
+      pass
+
+  @decorator
+  @decorator('arg', 'arg',
+             'arg', 'arg', 'arg')
+  @decorator('arg')
+  def example2():
+      x
+
+
+Do (replace second function and decorators):
+============================================
+  GvaPaPsx
+
+Expect python (second function and decorators replaced):
+========================================================
+  @decorator
+  def example1():
+      pass
+
+  x
+
+Given python (function with detached decorator):
+================================================
+  @decorator
+
+  def example1():
+      pass
+
+Do (replace function without decorator):
+========================================
+  GvaPaPsx
+
+Expect python (function replaced and detached decorator left behind):
+=====================================================================
+  @decorator
+
+  x
+
+
+Given python (nested decorated functions):
+==========================================
+  @decorator
+  def example():
+      @decorator
+      def example():
+
+          @decorator
+          def example():
+              pass
+          return example
+      return example
+
+Do (replace innermost function):
+================================
+  8GvaPaPsx
+
+Expect python (innermost function replaced):
+============================================
+  @decorator
+  def example():
+      @decorator
+      def example():
+
+          x
+          return example
+      return example
+
+Do (replace second innermost function):
+=======================================
+  8GvaPaPaPaPsx
+
+Expect python (innermost function replaced):
+============================================
+  @decorator
+  def example():
+      x
+      return example
