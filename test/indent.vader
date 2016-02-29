@@ -806,3 +806,27 @@ Expect python (x on correct indent level):
       '''
       print "("
       x
+
+Given python (decorated function):
+==================================
+  @decorator
+  def example()
+
+Do (trigger function autoindent):
+=================================
+  GA:
+
+Expect python (decorated function not indented):
+=================================================
+  @decorator
+  def example():
+
+Do (insert arguments):
+======================
+  G$Daarg1,\<cr>arg2):
+
+Expect python (decorated function not indented):
+=================================================
+  @decorator
+  def example(arg1,
+              arg2):

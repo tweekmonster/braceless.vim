@@ -127,6 +127,8 @@ function! s:handle_blocks(line, prev)
     if a:line - a:prev > 2 && a:line > block[1]
       " Gone past the point of caring.  Use the user's indent.
       return -1
+    elseif a:line > block[0] && a:line == block[2] && a:line == block[3]
+      return braceless#indent#space(block[2], 0)[1]
     elseif a:line == block[2] || a:line == block[3]
       " On a block head
       if prevnonblank(block[2] - 1) == 0
