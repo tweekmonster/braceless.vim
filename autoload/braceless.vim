@@ -337,7 +337,6 @@ function! braceless#select_block(pattern, ...)
   let block_end = s:get_block_end(body_start, pat)
 
   if !empty(a:pattern.decorator)
-    let [indent_char, indent_len] = braceless#indent#space(head[0], 0)
     while 1
       let decorator_tail = search(a:pattern.decorator, 'beW')
       if decorator_tail != 0 && block_start - decorator_tail == 1
@@ -349,10 +348,6 @@ function! braceless#select_block(pattern, ...)
   endif
 
   call winrestview(saved_view)
-
-  if block_end < body_start
-    return [block_end, block_end, head[0], tail[0]]
-  endif
 
   return [block_start, block_end, head[0], tail[0]]
 endfunction

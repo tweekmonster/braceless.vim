@@ -830,3 +830,123 @@ Expect python (decorated function not indented):
   @decorator
   def example(arg1,
               arg2):
+
+Given python (empty simple block):
+==================================
+  class Example(object):
+      def example():
+          pass
+
+      def example():
+          pass
+
+Do (insert function on first column between class functions):
+=============================================================
+  3Go\<cr>\<bs>def example():
+
+Expect python (empty function on first column):
+===============================================
+  class Example(object):
+      def example():
+          pass
+
+  def example():
+
+      def example():
+          pass
+
+Do (insert function on first column between class functions and reindent):
+==========================================================================
+  3Go\<cr>\<bs>def example():\<esc>==
+
+Expect python (empty function on first column):
+===============================================
+- This should NOT reindent since the block above is not empty, and the blocks
+- below are now children of the inserted block.
+  class Example(object):
+      def example():
+          pass
+
+  def example():
+
+      def example():
+          pass
+
+Do (insert two functions on first column between class functions and reindent to end of file):
+==============================================================================================
+  3Go
+  \<cr>\<bs>def example():
+  \<cr>\<bs>def example():
+  \<esc>4G=G
+
+Expect python (both empty blocks adopting the subsequent blocks):
+=================================================================
+  class Example(object):
+      def example():
+          pass
+
+  def example():
+      def example():
+
+          def example():
+              pass
+
+Given python (decorated empty blocks):
+======================================
+  class Example(object):
+      @decorator
+      def example():
+          pass
+
+      @decorator
+      def example():
+
+      @decorator
+      def example():
+
+      @decorator
+      def example():
+      pass
+
+
+  @decorator
+  def example():
+
+  @decorator
+  def example():
+
+
+  @decorator
+  def example():
+
+Do (reindent entire buffer):
+============================
+  =G
+
+Expect python (decorated empty blocks reindented):
+==================================================
+  class Example(object):
+      @decorator
+      def example():
+          pass
+
+      @decorator
+      def example():
+
+          @decorator
+          def example():
+
+              @decorator
+              def example():
+                  pass
+
+
+  @decorator
+  def example():
+
+      @decorator
+      def example():
+
+
+          @decorator
+          def example():

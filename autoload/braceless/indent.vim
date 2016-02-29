@@ -124,35 +124,61 @@ function! s:handle_blocks(line, prev)
       throw 'cont'
     endif
   catch /cont/
+    let prevnb = prevnonblank(block[0] - 1)
+    let indent_line = block[0]
+    let indent_delta = 1
+
     if a:line - a:prev > 2 && a:line > block[1]
       " Gone past the point of caring.  Use the user's indent.
       return -1
-    elseif a:line > block[0] && a:line == block[2] && a:line == block[3]
-      return braceless#indent#space(block[2], 0)[1]
-    elseif a:line == block[2] || a:line == block[3]
+    elseif a:line >= block[0] && a:line <= block[3]
       " On a block head
-      if prevnonblank(block[2] - 1) == 0
+      let block2 = braceless#get_block_lines(prevnb, 1)
+      if prevnb == 0
         " Special case for the first block in a file
         return 0
       endif
-      let block2 = braceless#get_block_lines(prevnonblank(block[2] - 1), 1)
-      let delta = 0
-      if block2[1] >= block[1] || block2[2] == block2[1]
-        " If the previous block contains this block.  If the previous block
-        " doesn't have a body it will adopt this one.
-        let delta = 1
+
+      if ((a:line == block[0] && block[3] == block[1])
+            \ || (a:line >= block[0] && a:line <= block[3]))
+            \ && (prevnb == block2[1] || block[0] >= block2[1])
+        " On an empty block or between the block top and block head tail, and
+        " the previous non-blank line is the bottom of another block...or
+        " current block top is part of the previous block (most likely an
+        " adopted decorator)
+        if block2[1] == block2[3] || block[0] <= block2[1]
+          " The previous block is empty, so get adopted
+          let indent_line = block2[2]
+          let indent_delta = 1
+        else
+          " Stay where it is
+          let indent_delta = 0
+        endif
+      else
+        let indent_line = block2[2]
+        let indent_delta = 0
+        if block2[1] >= block[1] || block2[2] == block2[1]
+          " If the previous block contains this block.  If the previous block
+          " doesn't have a body it will adopt this one.
+          let indent_delta = 1
+        endif
       endif
-      return braceless#indent#space(block2[2], delta)[1]
     elseif a:line > block[1] && a:line - a:prev > 1
       " Current line is past the end of a block, drop back one level
-      return braceless#indent#space(block[2], 0)[1]
+      let indent_delta = 0
     elseif a:prev > block[1]
-      " There is another line before end of the previous block, match its
+      " There is another line before the end of the previous block, match its
       " indent.
-      return braceless#indent#space(a:prev, 0)[1]
+      if block[1] == block[3]
+        " ...but, get adopted if it's an empty block
+        let indent_delta = 1
+      else
+        let indent_line = a:prev
+        let indent_delta = 0
+      endif
     endif
 
-    return braceless#indent#space(block[2], 1)[1]
+    return braceless#indent#space(indent_line, indent_delta)[1]
   endtry
 endfunction
 
@@ -162,7 +188,8 @@ function! braceless#indent#expr(line)
 
   try
     " This must return as-is
-    return braceless#indent#non_block(a:line, prev)
+    let i = braceless#indent#non_block(a:line, prev)
+    return i
   catch /cont/
   endtry
 
