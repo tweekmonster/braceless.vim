@@ -207,7 +207,7 @@ endfunction
 
 
 function! s:check_delimitMate()
-  if delimitMate#Get('expand_cr') == 2
+  if exists('b:braceless') && delimitMate#Get('expand_cr') == 2
     silent! imap <unique> <silent> <buffer> <cr> <c-r>=<SID>override_delimitMate_cr()<cr>
   endif
 endfunction
