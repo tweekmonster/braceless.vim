@@ -84,6 +84,9 @@ function! s:enable(...)
     let b:braceless = {}
   endif
 
+  let b:braceless.fold_cache = {}
+  let b:braceless.fold_changedtick = b:changedtick + 1
+
   call braceless#highlight#enable(0)
 
   if has_key(b:braceless, 'foldmethod')
