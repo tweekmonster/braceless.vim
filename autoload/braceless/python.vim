@@ -199,7 +199,7 @@ endfunction
 " delimitMate_expand_cr = 2 is great for assignments, but not for functions
 " and whatnot.
 function! s:override_delimitMate_cr()
-  if get(b:, 'delimitMate_enabled', 0) && search(s:call_pattern, 'nbeW') != line('.')
+  if b:braceless.indent_enabled && get(b:, 'delimitMate_enabled', 0) && search(s:call_pattern, 'nbeW') != line('.')
     return delimitMate#ExpandReturn()
   endif
   return "\<cr>"
@@ -281,14 +281,14 @@ function! s:map(lhs, direction, top)
 endfunction
 
 
-function! braceless#python#init()
-  let s:pattern = '^\s*'.(braceless#get_pattern().start)
-  call braceless#indent#add_handler('python', s:indent_handler)
-  autocmd User delimitMate_map call s:check_delimitMate()
+function! braceless#python#setup_indent()
+  setlocal indentkeys=!^F,o,O,<:>,0),0],0},=elif,=except
+endfunction
 
-  if &l:indentexpr =~ 'braceless#'
-    setlocal indentkeys=!^F,o,O,<:>,0),0],0},=elif,=except
-  endif
+
+function! braceless#python#init()
+  autocmd User delimitMate_map call s:check_delimitMate()
+  call braceless#indent#add_handler('python', s:indent_handler)
 
   call s:map('[m', -1, 1)
   call s:map(']m', 1, 1)
