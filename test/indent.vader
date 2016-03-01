@@ -950,3 +950,27 @@ Expect python (decorated empty blocks reindented):
 
           @decorator
           def example():
+
+Given python (class with non-function attributes):
+==================================================
+  class Example(object):
+      def __init__(self):
+          pass
+
+      attribute = [
+          'abc',
+      ]
+
+Do (reindent entire buffer):
+============================
+  =G
+
+Expect python (unaltered class with non-function attributes):
+=============================================================
+  class Example(object):
+      def __init__(self):
+          pass
+
+      attribute = [
+          'abc',
+      ]

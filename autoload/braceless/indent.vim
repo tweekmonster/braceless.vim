@@ -188,8 +188,7 @@ function! braceless#indent#expr(line)
 
   try
     " This must return as-is
-    let i = braceless#indent#non_block(a:line, prev)
-    return i
+    return braceless#indent#non_block(a:line, prev)
   catch /cont/
   endtry
 

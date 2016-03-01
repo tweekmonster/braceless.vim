@@ -179,7 +179,7 @@ function! s:indent_handler.block(line, block)
     " Special case for weirdly indented multi-line blocks
     let prev_block = braceless#get_block_lines(block_head)
     let prev_line = prevnonblank(a:line - 1)
-    if prev_line > prev_block[1]
+    if prev_line > prev_block[1] || a:line - prev_line > 1
       throw 'cont'
     endif
     return braceless#indent#space(block_head, 1)[1]
