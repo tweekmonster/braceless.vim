@@ -287,8 +287,11 @@ endfunction
 
 
 function! braceless#python#init()
-  autocmd User delimitMate_map call s:check_delimitMate()
   call braceless#indent#add_handler('python', s:indent_handler)
+
+  augroup braceless_delimitMate
+    autocmd! User delimitMate_map call s:check_delimitMate()
+  augroup END
 
   call s:map('[m', -1, 1)
   call s:map(']m', 1, 1)
