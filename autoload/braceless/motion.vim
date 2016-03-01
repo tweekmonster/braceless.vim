@@ -203,7 +203,6 @@ endfunction
 
 
 function! braceless#motion#select(motion, op)
-  redir >> /tmp/ops.log
   " Start with the current selection.  These change in s:iterate_selection()
   let s:vstart = getpos("'<")[1]
   let s:vend = getpos("'>")[1]
@@ -237,5 +236,4 @@ function! braceless#motion#select(motion, op)
   if s:vstart != 0 && s:vend != 0
     execute 'keepjumps normal! '.s:vstart.'G^V'.s:vend.'G$'
   endif
-  redir END
 endfunction
