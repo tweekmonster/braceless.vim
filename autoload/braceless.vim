@@ -12,7 +12,7 @@ let s:pattern_cache = {}
 " Default patterns
 let s:pattern_default = {}
 let s:pattern_default.python = {
-      \   'start': '\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\_.\{-}:\ze\s*\%(\_$\|#\)',
+      \   'start': '\<\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\>\_.\{-}:\ze\s*\%(\_$\|#\)',
       \   'decorator': '\_^\s*@\%(\k\|\.\)\+\%((\_.\{-})\)\?\_$',
       \   'end': '\S',
       \}
@@ -226,6 +226,7 @@ function! braceless#docstring(line, ...)
 
   while l >= bounds[0]
     if getline(l) =~ s:docstr && braceless#is_string(nextnonblank(l + 1))
+          \ && !braceless#is_string(prevnonblank(l - 1))
       let doc_head = l
       break
     elseif !braceless#is_string(l)
@@ -241,6 +242,7 @@ function! braceless#docstring(line, ...)
   let l = prevnonblank(a:line)
   while l <= bounds[1]
     if getline(l) =~ s:docstr && braceless#is_string(prevnonblank(l - 1))
+          \ && !braceless#is_string(nextnonblank(l + 1))
       let doc_tail = l
       break
     elseif !braceless#is_string(l)
@@ -255,17 +257,65 @@ endfunction
 
 " Scans for a block head by making sure the cursor doesn't land in a string or
 " comment that looks like a block head.  This moves the cursor.
-function! braceless#scan_head(pat, flag)
+function! braceless#scan_head(pat, flag) abort
+  let saved = {}
+  if a:flag =~ 'n'
+    let saved = winsaveview()
+  endif
+
+  let cursor_delta = 0
+  if a:flag =~ 'c'
+    " Ensure the cursor moves if searching from the current position.
+    if a:flag =~ 'b'
+      let cursor_delta = -1
+    else
+      let cursor_delta = 1
+    endif
+  endif
+
   let head = searchpos(a:pat, a:flag.'W')
+  if braceless#is_string(head[0], head[1]) || braceless#is_comment(head[0], head[1])
+    " Initial search landed in a string/comment
+    let docstring = braceless#docstring(head[0])
+    if docstring[0] != 0
+      if a:flag =~ 'b'
+        let c_line = docstring[0] - 1
+      else
+        let c_line = docstring[1] + 1
+      endif
+
+      if c_line < 1 || c_line > line('$')
+        if !empty(saved)
+          call winrestview(saved)
+        endif
+        return [0, 0]
+      else
+        call cursor(c_line, 0)
+      endif
+      let head = braceless#scan_head(a:pat, a:flag)
+      if !empty(saved)
+        call winrestview(saved)
+      endif
+      return head
+    endif
+  endif
+
   let shit_guard = 5
   while shit_guard > 0 && head[0] != 0
     if braceless#is_string(head[0], head[1]) || braceless#is_comment(head[0], head[1])
+      if cursor_delta
+        call cursor(head[0] + cursor_delta, 0)
+      endif
       let head = searchpos(a:pat, a:flag.'W')
       let shit_guard -= 1
       continue
     endif
     break
   endwhile
+
+  if !empty(saved)
+    call winrestview(saved)
+  endif
   return head
 endfunction
 

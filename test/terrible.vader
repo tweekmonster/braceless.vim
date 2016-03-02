@@ -3,6 +3,7 @@ Before:
   BracelessEnable +indent +fold +highlight
 
 Given python (func sig with colon in string/comment):
+=====================================================
   class Example(object):
       def example(arg1, arg2,
                   # TODO: Break braceless
@@ -14,9 +15,11 @@ Given python (func sig with colon in string/comment):
           pass
 
 Do (yank body and replace function with paste):
+===============================================
   jjviPyvaPp
 
 Expect python (body replacing function):
+========================================
   class Example(object):
           print('This passes lint tests.  Can you believe it?')
 
@@ -24,9 +27,11 @@ Expect python (body replacing function):
           pass
 
 Do (change body):
+=================
   jjciPpass
 
 Expect python (body replaced with proper indent):
+=================================================
   class Example(object):
       def example(arg1, arg2,
                   # TODO: Break braceless
@@ -36,3 +41,69 @@ Expect python (body replaced with proper indent):
 
       if True:
           pass
+
+Given python (block appears to start in docstring):
+===================================================
+  def example():
+      pass
+
+  """
+  if
+  def
+  for
+  try
+  elif
+  else
+  with
+  '''
+  class
+  while
+  except
+  finally
+  """
+
+  pass # Break docstring scan
+
+  """
+  if
+  def
+  for
+  try
+  elif
+  else
+  with
+  '''
+  class
+  while
+  except
+  finally
+  """
+
+  def example():
+      pass
+
+Execute (test block head scan):
+===============================
+  let test_pat = '^\s*'.braceless#get_pattern().start
+  AssertEqual [1, 1], braceless#scan_head(test_pat, 'c')
+  normal! $
+  AssertEqual [36, 1], braceless#scan_head(test_pat, 'c')
+  normal! 18G
+  AssertEqual [1, 1], braceless#scan_head(test_pat, 'b')
+  unlet test_pat
+
+Given python (xzibit's docstring):
+==================================
+  """
+  '''
+  """
+
+  """
+
+  '''
+  '''
+  """
+
+Execute (test docstring scan):
+==============================
+  AssertEqual [1, 9], braceless#docstring(6)
