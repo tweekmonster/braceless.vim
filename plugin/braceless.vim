@@ -5,6 +5,7 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
+let s:base = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 let s:did_init = 0
 let s:nomodline_avail = v:version > 703 || (v:version == 703 && has('patch438'))
 let g:loaded_braceless = 1
@@ -86,6 +87,7 @@ function! s:enable(...)
 
   let b:braceless.fold_cache = {}
   let b:braceless.fold_changedtick = b:changedtick + 1
+  let b:braceless.indent_enabled = 0
 
   call braceless#highlight#enable(0)
 
@@ -125,8 +127,26 @@ function! s:enable(...)
       endif
       call braceless#highlight#enable(1)
     elseif opt =~ '^+indent'
+      let b:braceless.indent_enabled = 1
       let b:braceless.indentexpr = &l:indentexpr
       setlocal indentexpr=braceless#indent#expr(v:lnum)
+
+      let setup_func = 'braceless#'.&l:filetype.'#setup_indent'
+      silent! call call(setup_func, [])
+
+      if get(g:, 'braceless_generate_scripts', 0)
+        " Generate a plugin indent script that overrides indent scripts if
+        " braceless was enabled from an ftplugin script.
+        let indent_script = join([s:base, 'after/indent/'.&l:filetype.'.vim'], '/')
+        if filewritable(fnamemodify(indent_script, ':h')) == 2 && !filereadable(indent_script)
+          call writefile([
+                \ 'if exists("b:braceless") && b:braceless.indent_enabled && &l:indentexpr !~ "braceless#"',
+                \ '  setlocal indentexpr=braceless#indent#expr(v:lnum)',
+                \ '  silent! call '.setup_func.'()',
+                \ 'endif',
+                \ ], indent_script)
+        endif
+      endif
     endif
   endfor
 

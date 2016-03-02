@@ -77,6 +77,9 @@ If you want to just get started, add a line like this to your |vimrc| file:
 >
   autocmd FileType python,coffee BracelessEnable +indent
 <
+Note: If you are calling |BracelessEnable| with |+indent| from an |ftplugin|
+      script, you will want to set |g:braceless_generate_scripts| to 1.
+
 EasyMotion support is enabled by default and allows you to move around by
 braceless text objects.  If you want this feature to be disabled, add the
 following to your |vimrc| file:
@@ -208,6 +211,25 @@ Default:
 >
   let g:braceless_easymotion_prev_key = g:braceless_jump_prev_key
   let g:braceless_easymotion_next_key = g:braceless_jump_next_key
+<
+
+*g:braceless_generate_scripts*
+
+This allows Braceless to generate an `after/indent/<filetype>.vim` script
+within the plugin's directory.  The scripts are generated once per filetype.
+You only need this if you want |+indent| to work when calling |BracelessEnable|
+from an ftplugin script.
+
+Explanation: When using the autocmd method mentioned in |braceless-quickstart|,
+indentation will work as described in |+indent| since ftplugin and indent
+scripts will have already been loaded, allowing Braceless to override
+filetype-specific |indentexpr|.  But, if you're using an ftplugin script to
+enable Braceless, those scripts run _after_ Braceless is enabled, undoing the
+changed |indentexpr|.
+
+Default:
+>
+  let g:braceless_generate_scripts = 0
 <
 
 INDENTATION                                                  *braceless-indent*

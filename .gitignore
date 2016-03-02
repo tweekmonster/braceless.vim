@@ -1,5 +1,6 @@
 /doc/tags
 /test/vim/plugins
+/after/indent
 
 ### Vim ###
 [._]*.s[a-w][a-z]
