@@ -163,9 +163,17 @@ non-block lines, they will be indented as well.
 
 In Python, |]m|, |]M|, |[m|, and |[M| are available to move to `def` or
 `class` blocks.  They are analogous to what's described in |various-motions|,
-except the part about braces.
+except the part about braces.  There is also motions for block segments.  A
+segment is non-whitespace text that's between block boundaries.
+
+  *[k*    Move to the beginning of the previous segment.
+  *[j*    Move to the beginning of the next segment.
+  *]k*    Move to the end of the previous segment.
+  *]j*    Move to the end of the next segment.
 
 All of the above key accept a |count| and can be used with an |operator|.
+
+See |braceless-easymotion| for other ways to move around.
 
 
 CONFIGURATION                                                *braceless-config*
@@ -201,8 +209,20 @@ Default:
   let g:braceless_jump_next_key = ']'
 <
 
+*g:braceless_segment_prev_key*
+*g:braceless_segment_next_key*
+
+Keys used for moving between segments.
+
+Default:
+>
+  let g:braceless_segment_prev_key = 'k'
+  let g:braceless_segment_next_key = 'j'
+<
+
 *g:braceless_easymotion_prev_key*
 *g:braceless_easymotion_next_key*
+*g:braceless_easymotion_segment_key*
 
 Keys used with EasyMotion.  By default, uses |g:braceless_jump_prev_key| and
 |g:braceless_jump_next_key|.  See: |braceless-easymotion|
@@ -211,6 +231,7 @@ Default:
 >
   let g:braceless_easymotion_prev_key = g:braceless_jump_prev_key
   let g:braceless_easymotion_next_key = g:braceless_jump_next_key
+  let g:braceless_easymotion_segment_key = 'S'
 <
 
 *g:braceless_generate_scripts*
@@ -316,8 +337,8 @@ EASYMOTION                                               *braceless-easymotion*
 
 Braceless adds a few simple searches to EasyMotion.  While EasyMotion is
 invoked (default: <leader><leader>), |[| will search for blocks before the
-cursor, |]| will search for blocks after the cursor, and |P| will search for
-blocks in both directions.
+cursor, |]| will search for blocks after the cursor, |P| will search for
+blocks in both directions, and |S| will search for segments in both directions.
 
 EasyMotion is a plugin worthy of the highest praise.  Do yourself a favor and
 install it if you haven't already.

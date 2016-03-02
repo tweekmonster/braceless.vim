@@ -290,7 +290,7 @@ function! braceless#scan_head(pat, flag) abort
       if stridx(a:flag, 'b') != -1
         let c_line = docstring[0] - 1
       else
-        let c_line = docstring[1] + 1
+        let c_line = docstring[1]
       endif
 
       if c_line < 1 || c_line > line('$')
@@ -395,7 +395,7 @@ function! braceless#select_block(pattern, ...)
   let saved_view = winsaveview()
   let c_line = s:best_indent(line('.'))
   if c_line == 0
-    return 0
+    return [0, 0, 0, 0]
   endif
 
   let [pat, flag] = s:build_pattern(c_line, a:pattern, ignore_empty)
@@ -405,7 +405,7 @@ function! braceless#select_block(pattern, ...)
 
   if head[0] == 0 || tail[0] == 0
     call winrestview(saved_view)
-    return [c_line, c_line, head[0], tail[0]]
+    return [0, 0, head[0], tail[0]]
   endif
 
   " Finally begin the block search
@@ -478,8 +478,14 @@ function! braceless#get_block_lines(line, ...)
   let pattern = braceless#get_pattern()
   let saved = winsaveview()
   let ignore_empty = 0
-  if a:0 != 0
+  let include_whitespace = 0
+
+  if a:0 > 0
     let ignore_empty = a:1
+  endif
+
+  if a:0 > 1
+    let include_whitespace = a:2
   endif
   call cursor(a:line, col([a:line, '$']))
   let block = braceless#select_block(pattern, ignore_empty)
@@ -496,17 +502,21 @@ function! braceless#get_block_lines(line, ...)
     let block[0] = next_line
   endif
 
+  if include_whitespace && block[1] < line('$')
+    let block[1] = nextnonblank(block[1] + 1) - 1
+  endif
+
   return block
 endfunction
 
 
-function! braceless#get_parent_block_lines(line, ...)
+function! braceless#get_parent_block_lines(...)
   let saved = winsaveview()
-  let block = braceless#get_block_lines(a:line)
+  let block = call('braceless#get_block_lines', a:000)
   let [indent_char, indent_len] = braceless#indent#space(block[2], -1)
   call cursor(block[2], 0)
   let sub = search('^'.indent_char.'{-,'.indent_len.'}\S', 'nbW')
-  let parent = braceless#get_block_lines(sub)
+  let parent = call('braceless#get_block_lines', [sub] + a:000[1:])
   call winrestview(saved)
   return [parent, block]
 endfunction

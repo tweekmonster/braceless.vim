@@ -98,49 +98,60 @@ Execute (move by method and class):
 
 Execute (move by block segments):
 =================================
-  normal \j
+  normal [j
   AssertCursor 3, 9
-  normal \j
+  normal [j
   AssertCursor 7, 13
-  normal \j
-  AssertCursor 9, 9
-  normal \j
-  AssertCursor 15, 17
-  normal \j
-  AssertCursor 19, 17
-  normal 3\j
-  AssertCursor 30, 13
-  normal G$\k
-  AssertCursor 40, 27
-  normal \k
-  AssertCursor 38, 24
-  normal \k
-  AssertCursor 33, 26
-  normal 5\k
-  AssertCursor 17, 29
-  normal 99\j
-  AssertCursor 42, 9
-  normal 99\k
-  AssertCursor 1, 22
-
-Execute (move by inner block):
-==============================
-  normal \j
-  normal ]\
-  AssertCursor 4, 23
-  normal ]\
-  AssertCursor 4, 23
-  normal [\
-  AssertCursor 3, 9
-  normal [\
-  AssertCursor 3, 9
-  normal 1]\
+  normal ]j
   AssertCursor 7, 16
-  normal [\
-  AssertCursor 7, 13
-  normal 2]\
+  normal ]j
+  AssertCursor 10, 28
+  normal ]j
   AssertCursor 17, 29
-  normal 99]\
-  AssertCursor 42, 20
-  normal 99[\
-  AssertCursor 1, 1
+  normal 3]j
+  AssertCursor 26, 24
+  normal G$[k
+  AssertCursor 42, 9
+  normal [k
+  AssertCursor 40, 13
+  normal ]k
+  AssertCursor 38, 24
+  normal 5]k
+  AssertCursor 19, 28
+  normal 99[j
+  AssertCursor 42, 9
+  normal 99[k
+  AssertCursor 3, 9
+
+Do (visually move around and delete):
+=====================================
+  v3]j[j[j]k]k2]jo[jd
+
+Expect python (visually selected text deleted):
+========================================
+  class Example(object):
+      def __init__(self):
+          
+
+      def up(self):
+          if True:
+              print('never')
+              print('gonna')
+          else:
+              print('let')
+
+      def you(self):
+          if True:
+              print('down')
+              print('never')
+          else:
+              print('gonna')
+
+      def run(self):
+          if True:
+              print('around')
+              print('and')
+          else:
+              print('desert')
+
+          print('you')

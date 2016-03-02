@@ -11,12 +11,14 @@ let s:nomodline_avail = v:version > 703 || (v:version == 703 && has('patch438'))
 let g:loaded_braceless = 1
 
 
-let g:braceless#key#segment = get(g:, 'braceless_segment_key', '')
+let g:braceless#key#segment_prev = get(g:, 'braceless_segment_prev_key', 'k')
+let g:braceless#key#segment_next = get(g:, 'braceless_segment_next_key', 'j')
 let g:braceless#key#block = get(g:, 'braceless_block_key', 'P')
 let g:braceless#key#jump_prev = get(g:, 'braceless_jump_prev_key', '[')
 let g:braceless#key#jump_next = get(g:, 'braceless_jump_next_key', ']')
 let g:braceless#key#em_prev = get(g:, 'braceless_easymotion_prev_key', g:braceless#key#jump_prev)
 let g:braceless#key#em_next = get(g:, 'braceless_easymotion_next_key', g:braceless#key#jump_next)
+let g:braceless#key#em_segment = get(g:, 'braceless_easymotion_segment_key', 'S')
 
 
 function! s:enable(...)
@@ -31,16 +33,16 @@ function! s:enable(...)
 
   let b:braceless_enabled = 1
 
-  if !empty(g:braceless#key#segment)
-    execute 'map <buffer> ['.g:braceless#key#segment.' <Plug>(braceless-jump-inner-prev)'
-    execute 'map <buffer> ]'.g:braceless#key#segment.' <Plug>(braceless-jump-inner-next)'
-    execute 'map <buffer> '.g:braceless#key#segment.'k <Plug>(braceless-jump-inner-prev-ex)'
-    execute 'map <buffer> '.g:braceless#key#segment.'j <Plug>(braceless-jump-inner-next-ex)'
+  if !empty(g:braceless#key#segment_prev) && !empty(g:braceless#key#segment_next)
+    execute 'map <buffer> ['.g:braceless#key#segment_prev.' <Plug>(braceless-segment-prev-top-n)'
+    execute 'map <buffer> ]'.g:braceless#key#segment_prev.' <Plug>(braceless-segment-prev-bot-n)'
+    execute 'map <buffer> ['.g:braceless#key#segment_next.' <Plug>(braceless-segment-next-top-n)'
+    execute 'map <buffer> ]'.g:braceless#key#segment_next.' <Plug>(braceless-segment-next-bot-n)'
 
-    execute 'vmap <buffer> ['.g:braceless#key#segment.' <Plug>(braceless-jump-inner-prev-v)'
-    execute 'vmap <buffer> ]'.g:braceless#key#segment.' <Plug>(braceless-jump-inner-next-v)'
-    execute 'vmap <buffer> '.g:braceless#key#segment.'k <Plug>(braceless-jump-inner-prev-v-ex)'
-    execute 'vmap <buffer> '.g:braceless#key#segment.'j <Plug>(braceless-jump-inner-next-v-ex)'
+    execute 'vmap <buffer> ['.g:braceless#key#segment_prev.' <Plug>(braceless-segment-prev-top-v)'
+    execute 'vmap <buffer> ]'.g:braceless#key#segment_prev.' <Plug>(braceless-segment-prev-bot-v)'
+    execute 'vmap <buffer> ['.g:braceless#key#segment_next.' <Plug>(braceless-segment-next-top-v)'
+    execute 'vmap <buffer> ]'.g:braceless#key#segment_next.' <Plug>(braceless-segment-next-bot-v)'
   endif
 
   if !empty(g:braceless#key#block)
@@ -78,6 +80,11 @@ function! s:enable(...)
     if !empty(g:braceless#key#em_next)
       silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_next.' :<C-u>call braceless#easymotion#blocks(0, 0)<cr>'
       silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_next.' :<C-u>call braceless#easymotion#blocks(1, 0)<cr>'
+    endif
+
+    if !empty(g:braceless#key#em_segment)
+      silent execute 'map <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_segment.' :<C-u>call braceless#easymotion#segments(0, 2)<cr>'
+      silent execute 'xmap <buffer> <Plug>(easymotion-prefix)'.g:braceless#key#em_segment.' :<C-u>call braceless#easymotion#segments(1, 2)<cr>'
     endif
   endif
 
@@ -161,21 +168,24 @@ endfunction
 
 function! s:init()
 
+  " Text object
   vnoremap <silent> <Plug>(braceless-i-v) :<C-u>call braceless#motion#select('i', '')<cr>
   vnoremap <silent> <Plug>(braceless-a-v) :<C-u>call braceless#motion#select('a', '')<cr>
   onoremap <silent> <Plug>(braceless-i-n) :<C-u>call braceless#motion#select('i', v:operator)<cr>
   onoremap <silent> <Plug>(braceless-a-n) :<C-u>call braceless#motion#select('a', v:operator)<cr>
 
-  vnoremap <silent> <Plug>(braceless-jump-inner-prev-v) :<C-u>call braceless#movement#inner_block(-1, 'v', 1, 1)<cr>
-  vnoremap <silent> <Plug>(braceless-jump-inner-next-v) :<C-u>call braceless#movement#inner_block(1, 'v', 1, 0)<cr>
-  vnoremap <silent> <Plug>(braceless-jump-inner-prev-v-ex) :<C-u>call braceless#movement#inner_block(-1, 'v', 0, 0)<cr>
-  vnoremap <silent> <Plug>(braceless-jump-inner-next-v-ex) :<C-u>call braceless#movement#inner_block(1, 'v', 0, 1)<cr>
+  " Segment movement
+  noremap <silent> <Plug>(braceless-segment-prev-top-n) :<C-u>silent call braceless#segments#move(-1, 1, 'n', v:operator)<cr>
+  noremap <silent> <Plug>(braceless-segment-prev-bot-n) :<C-u>silent call braceless#segments#move(-1, 0, 'n', v:operator)<cr>
+  noremap <silent> <Plug>(braceless-segment-next-top-n) :<C-u>silent call braceless#segments#move( 1, 1, 'n', v:operator)<cr>
+  noremap <silent> <Plug>(braceless-segment-next-bot-n) :<C-u>silent call braceless#segments#move( 1, 0, 'n', v:operator)<cr>
 
-  noremap <silent> <Plug>(braceless-jump-inner-prev) :<C-u>call braceless#movement#inner_block(-1, 'n', 1, 1)<cr>
-  noremap <silent> <Plug>(braceless-jump-inner-next) :<C-u>call braceless#movement#inner_block(1, 'n', 1, 0)<cr>
-  noremap <silent> <Plug>(braceless-jump-inner-prev-ex) :<C-u>call braceless#movement#inner_block(-1, 'n', 0, 0)<cr>
-  noremap <silent> <Plug>(braceless-jump-inner-next-ex) :<C-u>call braceless#movement#inner_block(1, 'n', 0, 1)<cr>
+  vnoremap <silent> <Plug>(braceless-segment-prev-top-v) :<C-u>silent call braceless#segments#move(-1, 1, visualmode(), v:operator)<cr>
+  vnoremap <silent> <Plug>(braceless-segment-prev-bot-v) :<C-u>silent call braceless#segments#move(-1, 0, visualmode(), v:operator)<cr>
+  vnoremap <silent> <Plug>(braceless-segment-next-top-v) :<C-u>silent call braceless#segments#move( 1, 1, visualmode(), v:operator)<cr>
+  vnoremap <silent> <Plug>(braceless-segment-next-bot-v) :<C-u>silent call braceless#segments#move( 1, 0, visualmode(), v:operator)<cr>
 
+  " Simple block movement
   vnoremap <silent> <Plug>(braceless-jump-prev-v) :<C-u>call braceless#movement#block(-1, visualmode(), 0, v:count1)<cr>
   vnoremap <silent> <Plug>(braceless-jump-next-v) :<C-u>call braceless#movement#block(1, visualmode(), 0, v:count1)<cr>
   vnoremap <silent> <Plug>(braceless-jump-prev-v-indent) :<C-u>call braceless#movement#block(-1, visualmode(), 1, v:count1)<cr>
