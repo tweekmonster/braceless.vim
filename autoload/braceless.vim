@@ -188,16 +188,22 @@ endfunction
 
 let s:syn_string = '\%(String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\)$'
 let s:syn_comment = '\%(Comment\|Todo\)$'
+let s:syn_skippable = '\%(Comment\|Todo\|String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\)$'
 
 function! braceless#is_string(line, ...)
-  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~ s:syn_string
-        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~ s:syn_string)
+  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~? s:syn_string
+        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~? s:syn_string)
 endfunction
 
 
 function! braceless#is_comment(line, ...)
-  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~ s:syn_comment
-        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~ s:syn_comment)
+  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~? s:syn_comment
+        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~? s:syn_comment)
+endfunction
+
+function! braceless#is_skippable(line, ...)
+  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~? s:syn_skippable
+        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~? s:syn_skippable)
 endfunction
 
 
@@ -259,14 +265,14 @@ endfunction
 " comment that looks like a block head.  This moves the cursor.
 function! braceless#scan_head(pat, flag) abort
   let saved = {}
-  if a:flag =~ 'n'
+  if stridx(a:flag, 'n') != -1
     let saved = winsaveview()
   endif
 
   let cursor_delta = 0
-  if a:flag =~ 'c'
+  if stridx(a:flag, 'c') != -1
     " Ensure the cursor moves if searching from the current position.
-    if a:flag =~ 'b'
+    if stridx(a:flag, 'b') != -1
       let cursor_delta = -1
     else
       let cursor_delta = 1
@@ -274,11 +280,15 @@ function! braceless#scan_head(pat, flag) abort
   endif
 
   let head = searchpos(a:pat, a:flag.'W')
-  if braceless#is_string(head[0], head[1]) || braceless#is_comment(head[0], head[1])
+  if head[0] == 0
+    return head
+  endif
+
+  if braceless#is_skippable(head[0], head[1])
     " Initial search landed in a string/comment
     let docstring = braceless#docstring(head[0])
     if docstring[0] != 0
-      if a:flag =~ 'b'
+      if stridx(a:flag, 'b') != -1
         let c_line = docstring[0] - 1
       else
         let c_line = docstring[1] + 1
@@ -298,11 +308,34 @@ function! braceless#scan_head(pat, flag) abort
       endif
       return head
     endif
+  elseif stridx(a:flag, 'e') == -1
+    " Only check if we aren't moving to the end of head since it should
+    " naturally land outside of collection brackets because of the pattern.
+    let col_saved = winsaveview()
+    call cursor(head)
+
+    " Only scan up to 5 lines before the head.
+    let stopline = max([1, head[0] - 5])
+    let col_start = searchpair('(\|{\|\[', '', ')\|}\|\]', 'ncbW',
+                              \'braceless#is_skippable(line(''.''), col(''.''))', stopline)
+    if col_start != 0
+      " If searchpair() matches, it means that the head is within a pair
+      " (even if it's unclosed).
+      if cursor_delta
+        call cursor(head[0] + cursor_delta, 0)
+      endif
+      let head = braceless#scan_head(a:pat, a:flag)
+      if !empty(saved)
+        call winrestview(saved)
+      endif
+      return head
+    endif
+    call winrestview(col_saved)
   endif
 
   let shit_guard = 5
   while shit_guard > 0 && head[0] != 0
-    if braceless#is_string(head[0], head[1]) || braceless#is_comment(head[0], head[1])
+    if braceless#is_skippable(head[0], head[1])
       if cursor_delta
         call cursor(head[0] + cursor_delta, 0)
       endif
@@ -336,7 +369,7 @@ function! braceless#scan_tail(pat, head)
     while shit_guard > 0 && tail[0] != 0
       let shit_guard -= 1
 
-      if braceless#is_string(tail[0], tail[1]) || braceless#is_comment(tail[0], tail[1])
+      if braceless#is_skippable(tail[0], tail[1])
         " If the tail ends up a string or comment, replace the \_.\{-} portion
         " of the pattern with one that specifically skips a certain amount of
         " characters from the start of the head.

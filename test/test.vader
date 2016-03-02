@@ -16,6 +16,7 @@ Execute (setup):
     endif
   endfunction
 
+  let g:py_test_pat = '^\s*'.braceless#get_pattern('python').start
   command! -nargs=+ AssertCursor call AssertCursor(<args>)
 
 Include: autocmd.vader
@@ -32,4 +33,5 @@ Execute (cleanup):
   silent! unlet g:did_init
   silent! unlet g:did_enable_python
   silent! unlet g:did_enable_yaml
+  silent! unlet g:test_pat
   Restore
