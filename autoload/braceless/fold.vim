@@ -3,16 +3,16 @@
 function! s:build_cache()
   let saved = winsaveview()
   let pattern = braceless#get_pattern()
-  let pat = '^\s*'.pattern.start
   call cursor(1, 1)
+  let head = braceless#scan_head(pattern.fold, 'e')[0]
 
-  while 1
-    let head = braceless#scan_head(pat, 'n')[0]
-    if head == 0
-      break
+  while head != 0
+    if empty(b:braceless.fold_cache)
+      let b:braceless.fold_cache[0] = []
+      call add(b:braceless.fold_cache[0], [1, head - 1, 1, 1])
     endif
 
-    let block = braceless#get_block_lines(head)
+    let block = braceless#get_block_lines(head, 1)
     let level = braceless#indent#level(block[2], 0)
 
     if !has_key(b:braceless.fold_cache, level)
@@ -20,7 +20,14 @@ function! s:build_cache()
     endif
 
     call add(b:braceless.fold_cache[level], block)
-    call cursor(head + 1, 1)
+    let head = braceless#scan_head(pattern.fold, 'e')[0]
+    if head == 0
+      let l = nextnonblank(line('.'))
+      if l != 0
+        call add(b:braceless.fold_cache[0], [l, line('$'), l, l])
+        break
+      endif
+    endif
   endwhile
 
   call winrestview(saved)
@@ -66,7 +73,17 @@ function! braceless#fold#expr(line)
     if !empty(b:braceless.fold_cache)
       let b:braceless.fold_cache = {}
     endif
-    let block = braceless#get_block_lines(a:line)
+    let saved = winsaveview()
+    let pattern = braceless#get_pattern()
+    call cursor(a:line, col([a:line, '$']))
+    let head = braceless#scan_head(pattern.fold, 'nb')[0]
+    if head == 0
+      let head = braceless#scan_head(pattern.fold, 'n')[0]
+      let block = [1, head - 1, 1, 1]
+    else
+      let block = braceless#get_block_lines(head)
+    endif
+    call winrestview(saved)
   else
     if empty(b:braceless.fold_cache)
       call s:build_cache()

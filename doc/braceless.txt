@@ -404,11 +404,12 @@ A pattern can be defined using:
   \   'start': '',
   \   'stop': '',
   \   'jump': '',
+  \   'fold': '',
   \   'easymotion': '',
   \ }
 <
 The keys mentioned above defines a regexp |pattern|.  The most important being
-`start` which is used as the default for `jump` and `easymotion` if they are
+`start` which is used as the default for `jump`, `fold`, and `easymotion` if they are
 missing.  The `stop` pattern helps Braceless understand where the block ends,
 but shouldn't be necessary to define in most situations.  When omitted,
 `start` will default to `\S.*`, and `stop` will default to `\S`.
@@ -428,7 +429,15 @@ This pattern searches for the text in the first atom followed by any character
 (including newlines, as few as possible), followed by a colon.  When selecting
 a block at indent level 1, the pattern is transformed into:
 >
- ^ \{-,4}\zs\%(if\|def\|for\|elif\|else\|with\|class\|while\)\_.\{-}:
+ ^ \{-,4}\zs\<\%(if\|def\|for\|elif\|else\|with\|class\|while\)\>\_.\{-}:
+<
+The exception is the `fold` key.  Braceless will not prefix this pattern since
+indent accuracy isn't a concern with folds.  To fold only on `class` or `def`
+blocks, you could use the following pattern:
+>
+  let braceless#pattern#python = {
+  \   'fold': '\<\%(def\|class\)\>\_.\{-}:\s*\%(\_$\|#\)'
+  \ }
 <
 Look at `autoload/braceless.vim` for a more complicated example for
 CoffeeScript.
@@ -439,7 +448,7 @@ to `class` and `def` blocks, while retaining the ability to select other
 blocks:
 >
   let g:braceless#pattern#python = {
-  \   'jump': '\%(def\|class\)\_.\{-}:',
+  \   'jump': '\<\%(def\|class\)\>\_.\{-}:\ze\s*\%(\_$\|#\)',
   \ }
 <
 

@@ -8,7 +8,6 @@ set cpo&vim
 " The cache of found patterns
 let s:pattern_cache = {}
 
-
 " Default patterns
 let s:pattern_default = {}
 let s:pattern_default.python = {
@@ -453,6 +452,7 @@ function! braceless#get_pattern(...)
           \   'start': start_pat,
           \   'stop': stop_pat,
           \   'jump': get(pat, 'jump', get(def, 'jump', start_pat)),
+          \   'fold': get(pat, 'fold', get(def, 'fold', start_pat)),
           \   'easymotion': get(pat, 'easymotion', get(def, 'easymotion', start_pat)),
           \   'decorator': get(pat, 'decorator', get(def, 'decorator', '')),
           \ }
