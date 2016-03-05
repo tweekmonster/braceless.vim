@@ -183,3 +183,25 @@ Execute (test block head scan):
   normal! 3G13|
   AssertEqual [6, 1], braceless#scan_head(g:py_test_pat, 'c')
   AssertEqual [1, 1], braceless#scan_head(g:py_test_pat, 'b')
+
+Given python (docstring in function call):
+==========================================
+  def spam(arg1, arg2,
+           # A comment between arguments
+           arg3="""def spam():
+  print('eggs')"""):
+      print("""No one expects...
+  the spammish inquisition""")
+      return True
+
+Do (select function body and replace):
+======================================
+  viPsx
+
+Expect python (function body replaced):
+=======================================
+  def spam(arg1, arg2,
+           # A comment between arguments
+           arg3="""def spam():
+  print('eggs')"""):
+      x

@@ -47,7 +47,7 @@ function! s:get_block_end(start, pattern)
   let lastline = end
 
   while start > 0 && start <= end
-    if getline(start) =~ a:pattern && !braceless#is_string(start)
+    if getline(start) =~ a:pattern && !braceless#is_string(start, 1)
       let lastline = braceless#prevnonstring(start - 1)
       break
     endif
