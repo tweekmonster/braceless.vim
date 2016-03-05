@@ -391,7 +391,6 @@ endfunction
 " Move by a segment.  A segment is content either within a block, or between
 " blocks.  It should never land on a block head.
 function! braceless#segments#move(direction, top, vmode, op, indent) abort
-  redir >> /tmp/segment.log
   " Not v:count1 since we're doing a preliminary positioning
   let c = v:count
 
@@ -476,5 +475,4 @@ function! braceless#segments#move(direction, top, vmode, op, indent) abort
   if dest[0] != 0
     execute 'normal! '.dest[0].'G'.dest[1].'|'
   endif
-  redir END
 endfunction
