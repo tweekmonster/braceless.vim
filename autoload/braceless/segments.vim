@@ -310,6 +310,60 @@ function! braceless#segments#previous(line) abort
 endfunction
 
 
+" Gets the next segment that is on a lower or higher indent level than the
+" current segment.
+function! braceless#segments#next_indent(line, direction) abort
+  let segment = braceless#segments#current(a:line)
+  let block = braceless#get_block_lines(segment[0])
+
+  if a:line >= block[0] && a:line <= block[1]
+    let [_, indent_len] = braceless#indent#space(block[2], 1)
+  else
+    let indent_len = indent(a:line)
+  endif
+
+  let next_line = s:nextnonblock(segment[1] + 1)
+  while next_line != 0
+        \ && ((a:direction == -1 && indent(next_line) >= indent_len)
+        \ || (a:direction == 1 && indent(next_line) <= indent_len))
+    let next_line = s:nextnonblock(next_line + 1)
+  endwhile
+
+  if next_line != 0
+    let segment = braceless#segments#current(next_line)
+  endif
+
+  return segment
+endfunction
+
+
+" Gets the previous segment that is on a lower or higher indent level than the
+" current segment.
+function! braceless#segments#previous_indent(line, direction) abort
+  let segment = braceless#segments#current(a:line, -1)
+  let block = braceless#get_block_lines(segment[0])
+
+  if a:line >= block[0] && a:line <= block[1]
+    let [_, indent_len] = braceless#indent#space(block[2], 1)
+  else
+    let indent_len = indent(a:line)
+  endif
+
+  let next_line = s:prevnonblock(segment[0] - 1)
+  while next_line != 0
+        \ && ((a:direction == -1 && indent(next_line) >= indent_len)
+        \ || (a:direction == 1 && indent(next_line) <= indent_len))
+    let next_line = s:prevnonblock(next_line - 1)
+  endwhile
+
+  if next_line != 0
+    let segment = braceless#segments#current(next_line, -1)
+  endif
+
+  return segment
+endfunction
+
+
 " Gets the segments that are visible in the buffer
 function! braceless#segments#visible() abort
   let line_start = line('w0')
@@ -336,7 +390,8 @@ endfunction
 
 " Move by a segment.  A segment is content either within a block, or between
 " blocks.  It should never land on a block head.
-function! braceless#segments#move(direction, top, vmode, op) abort
+function! braceless#segments#move(direction, top, vmode, op, indent) abort
+  redir >> /tmp/segment.log
   " Not v:count1 since we're doing a preliminary positioning
   let c = v:count
 
@@ -355,17 +410,19 @@ function! braceless#segments#move(direction, top, vmode, op) abort
 
   " Position within the current segment only if it make sense for the desired
   " direction.
-  if a:top && a:direction == -1 && (pos[0] > segment[0] || pos[1] > segment_head)
-    call cursor(segment[0], segment_head)
-  elseif !a:top && a:direction == 1 && (pos[0] < segment[1] || pos[1] < segment_tail)
-    call cursor(segment[1], segment_tail)
-  elseif pos[0] < segment[0] || pos[0] > segment[1]
-    " Cursor is outside of the current segment.  Set the position in the
-    " current segment to avoid making things more complicated below.
-    if a:top
+  if a:indent == 0
+    if a:top && a:direction == -1 && (pos[0] > segment[0] || pos[1] > segment_head)
       call cursor(segment[0], segment_head)
-    else
+    elseif !a:top && a:direction == 1 && (pos[0] < segment[1] || pos[1] < segment_tail)
       call cursor(segment[1], segment_tail)
+    elseif pos[0] < segment[0] || pos[0] > segment[1]
+      " Cursor is outside of the current segment.  Set the position in the
+      " current segment to avoid making things more complicated below.
+      if a:top
+        call cursor(segment[0], segment_head)
+      else
+        call cursor(segment[1], segment_tail)
+      endif
     endif
   endif
 
@@ -386,9 +443,17 @@ function! braceless#segments#move(direction, top, vmode, op) abort
     while c > 0
       let c -= 1
       if a:direction == -1
-        let segment = braceless#segments#previous(segment[0])
+        if a:indent
+          let segment = braceless#segments#previous_indent(segment[0], a:indent)
+        else
+          let segment = braceless#segments#previous(segment[0])
+        endif
       else
-        let segment = braceless#segments#next(segment[1])
+        if a:indent
+          let segment = braceless#segments#next_indent(segment[1], a:indent)
+        else
+          let segment = braceless#segments#next(segment[1])
+        endif
       endif
 
       if segment == [0, 0] || segment == prev_segment
@@ -411,4 +476,5 @@ function! braceless#segments#move(direction, top, vmode, op) abort
   if dest[0] != 0
     execute 'normal! '.dest[0].'G'.dest[1].'|'
   endif
+  redir END
 endfunction
