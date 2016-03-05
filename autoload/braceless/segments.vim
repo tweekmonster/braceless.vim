@@ -408,10 +408,6 @@ function! braceless#segments#move(direction, top, vmode, op) abort
 
   call winrestview(saved)
 
-  if a:vmode ==? 'v'
-    normal! gv
-  endif
-
   if dest[0] != 0
     execute 'normal! '.dest[0].'G'.dest[1].'|'
   endif
