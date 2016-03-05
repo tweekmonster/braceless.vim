@@ -40,7 +40,7 @@ actual code blocks using `iP` and `aP`.
 ### Object motions
 
 Moving to recognized blocks is done with `[[` and `]]`.  In Python, `[m` and
-`m]` moves to `def` and `class` blocks, while `[M` and `M]` moves to the end of
+`]m` moves to `def` and `class` blocks, while `[M` and `]M` moves to the end of
 those blocks.
 
 ![braceless-movement](https://cloud.githubusercontent.com/assets/111942/13040689/4a3bb9b0-d37d-11e5-985e-f94fe23b280c.gif)
