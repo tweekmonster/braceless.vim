@@ -100,7 +100,10 @@ function! s:enable(...)
 
   if has_key(b:braceless, 'foldmethod')
     let &l:foldmethod = b:braceless.foldmethod
-    let &l:foldexpr = b:braceless.foldmethod
+  endif
+
+  if has_key(b:braceless, 'foldexpr')
+    let &l:foldexpr = b:braceless.foldexpr
   endif
 
   if has_key(b:braceless, 'orig_cc')
@@ -113,17 +116,23 @@ function! s:enable(...)
 
   for opt in a:000
     if opt =~ '^+fold'
-      if opt[-6:] == '-inner'
-        let b:braceless.fold_inner = 1
+      if opt !~ '-slow'
+        let b:braceless.foldmethod = &l:foldmethod
+        call braceless#fold#enable_fast()
       else
-        let b:braceless.fold_inner = 0
+        " Depreciated
+        if opt =~ '-inner'
+          let b:braceless.fold_inner = 1
+        else
+          let b:braceless.fold_inner = 0
+        endif
+
+        let b:braceless.foldmethod = &l:foldmethod
+        let b:braceless.foldexpr = &l:foldexpr
+
+        setlocal foldmethod=expr
+        setlocal foldexpr=braceless#fold#expr(v:lnum)
       endif
-
-      let b:braceless.foldmethod = &l:foldmethod
-      let b:braceless.foldexpr = &l:foldexpr
-
-      setlocal foldmethod=expr
-      setlocal foldexpr=braceless#fold#expr(v:lnum)
     elseif opt =~ '^+highlight'
       if opt[-3:] == '-cc'
         let b:braceless.highlight_cc = 1

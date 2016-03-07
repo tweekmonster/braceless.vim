@@ -20,7 +20,7 @@ Option | Description
 ------ | -----------
 `+indent` | Enable indent handling
 `+fold` | Enable folding
-`+fold-inner` | Enable folding, but fold on the inner block
+`+fold-slow` | Enable indentexpr folding, which is depreciated and slow
 `+highlight` | Enable indent guide
 `+highlight-cc` | Enable indent guide, but use `colorcolumn`
 `+highlight-cc2` | Enable indent guide **and** use `colorcolumn`
@@ -48,15 +48,16 @@ those blocks.
 
 ### Folding
 
-Get useful code folding.  Unfortunately, this can be a little slow on large
-scripts.
+Get useful code folding by adding `+fold`.  ~~Unfortunately, this can be a
+little slow on large scripts.~~  Folding is now **much** faster!  Read the
+~~boring~~ **exciting** details in `:h braceless-folds`!
 
 ![braceless-fold](https://cloud.githubusercontent.com/assets/111942/13040746/f5f29332-d37d-11e5-95b0-6b30a2f2adc1.gif)
 
 
 ### Indent guide
 
-See what indent level you're operating on.  You can also enable `colorcolumn`
+See what indent level you're operating on with `+highlight`.  You can also enable `colorcolumn`
 so the guide can span the height of the window.
 
 ![braceless-highlight](https://cloud.githubusercontent.com/assets/111942/13040915/11a1cf74-d380-11e5-8e56-da487f0536f8.gif)
@@ -65,13 +66,11 @@ so the guide can span the height of the window.
 ### Somewhat intelligent auto-indent
 
 Ever wished for autoindent that didn't make you fix the indent?  Wish no more,
-pal.  It's not perfect, but it's definitely better.  There is even PEP 8
-indentation built in, and if you use [delimitMate](https://github.com/Raimondi/delimitMate)
-with the `expand_cr` option enabled, Braceless will disable it temporarily when
-you're messing with block arguments.
-
-If you prefer the built-in autoindent, don't add the `+indent` option to the
-`BracelessEnable` command.
+pal.  Just add `+indent`.  It's not perfect, but it's definitely better.  There
+is even PEP 8 indentation built in, and if you use
+[delimitMate](https://github.com/Raimondi/delimitMate) with the `expand_cr`
+option enabled, Braceless will disable it temporarily when you're messing with
+block arguments.
 
 ![braceless-autoindent](https://cloud.githubusercontent.com/assets/111942/13276832/41eb5e76-da91-11e5-9d29-0537dd887f2b.gif)
 

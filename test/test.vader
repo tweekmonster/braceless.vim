@@ -16,14 +16,25 @@ Execute (setup):
     endif
   endfunction
 
+  function! AssertFold(line, level)
+    let saved = winsaveview()
+    call cursor(a:line, 0)
+    normal zc
+    let level = foldlevel(a:line)
+    call winrestview(saved)
+    AssertEqual a:level, level, 'Expected fold level '.a:level.' on line '.a:line.', got '.level
+  endfunction
+
   let g:py_test_pat = '^\s*'.braceless#get_pattern('python').start
   command! -nargs=+ AssertCursor call AssertCursor(<args>)
+  command! -nargs=+ AssertFold call AssertFold(<args>)
 
 Include: autocmd.vader
 Include: indent.vader
 Include: motion.vader
 Include: selection.vader
 Include: terrible.vader
+Include: fold.vader
 Include: delimitMate.vader
 
 Execute (cleanup):

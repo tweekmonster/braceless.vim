@@ -34,6 +34,16 @@ let s:str_skip = "synIDattr(synID(line('.'), col('.'), 1), 'name')"
 let s:collection = ['(\|{\|\[', ')\|}\|\]']
 
 
+function! braceless#indent#collection_bounds()
+  let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW', s:str_skip)
+  if col_head[0] == 0
+    return [[0, 0], [0, 0]]
+  endif
+  let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW', s:str_skip)
+  return [col_head, col_tail]
+endfunction
+
+
 function! braceless#indent#add_handler(filetype, handlers)
   let s:handlers[a:filetype] = a:handlers
 endfunction
@@ -46,9 +56,8 @@ function! braceless#indent#non_block(line, prev)
   if getline(a:line) =~ s:collection[1]
     keepjumps normal! ^
   endif
-  let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW', s:str_skip)
+  let [col_head, col_tail] = braceless#indent#collection_bounds()
   if col_head[0] != a:line && col_head[0] > 0
-    let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW', s:str_skip)
     if col_head[0] == col_tail[0]
       " All on the same line
       throw 'cont'

@@ -1,0 +1,66 @@
+Before:
+=======
+  BracelessEnable +indent +fold +highlight
+
+Given python (Misc blocks):
+===========================
+  def example():
+      if True:
+          pass
+
+  def example():
+      if True:
+          pass
+      else:
+          pass
+
+Execute (verify folds):
+=======================
+  AssertFold 1, 1
+  AssertFold 2, 2
+  AssertFold 3, 2
+
+  " Whitespace gets used by the previous block
+  AssertFold 4, 2
+  AssertFold 5, 1
+  AssertFold 6, 2
+  AssertFold 7, 2
+  AssertFold 8, 2
+  AssertFold 9, 2
+
+Given python (terrible blocks):
+===============================
+  def spam(arg1, arg2,
+           # A comment between arguments
+           arg3="""def spam():
+  print('eggs')"""):
+      print("""No one expects...
+  the spammish inquisition""")
+      return True
+
+  class Example(object):
+      def example(arg1, arg2,
+                  # TODO: Break braceless
+                  arg3, arg4="""def lol():
+      print('lol')"""):
+          print('This passes lint tests.  Can you believe it?')
+
+      if True:
+          pass
+
+Execute (verify blocks):
+========================
+  AssertFold 1, 1
+  AssertFold 2, 1
+  AssertFold 3, 1
+  AssertFold 4, 1
+  AssertFold 5, 1
+  AssertFold 6, 1
+
+  AssertFold 9, 1
+  AssertFold 10, 2
+  AssertFold 11, 2
+  AssertFold 12, 2
+  AssertFold 13, 2
+  AssertFold 15, 2
+  AssertFold 16, 2

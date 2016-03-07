@@ -15,6 +15,7 @@ CONTENTS                                                   *braceless-contents*
   https://github.com/tweekmonster/braceless.vim
 
   Introduction              |braceless-intro|
+  News                      |braceless-news|
   Rationale                 |braceless-rationale|
   Quick Start               |braceless-quickstart|
   Text Object Taxonomy      |braceless-taxonomy|
@@ -44,6 +45,24 @@ Coffee Script.  Without configuration, this plugin will be more or less like
 the vim-indent-object plugin in other file types.
 
 See |braceless-taxonomy| for information on what is considered a block.
+
+
+NEWS                                                           *braceless-news*
+==============================================================================
+
+  List of recent additions or changes.
+
+  2016-03-07
+  ---------------------------------------------------------------------------
+
+  * The "New Features" section has been added to the docs.  This is where new
+    and exciting things are noted.  Also, new things that might break old
+    things, but you don't care about that because you're adventurous and
+    everyone thinks you smell nice.
+
+  * Switched the folding method to |fold-manual|, but managed by Braceless.
+    This allows for really fast folding compared to |fold-expr|.  But, there's
+    some caveats.  Read more: |braceless-folds|
 
 
 RATIONALE                                                 *braceless-rationale*
@@ -284,21 +303,52 @@ See |braceless-custom-indent| for info on how to write your own indent rules.
 
 FOLDING                                                       *braceless-folds*
 ==============================================================================
-*+fold* *+fold-inner*
+*+fold* *+fold-slow*
 
-⚠️  This can slow down the loading of large scripts!
+The fold method used is |fold-manual|, but it is managed by Braceless.  Using
+this method, folding via |zc| or |zC| will transparently create or update
+manual folds.  This allows you to have easy to use folding, while keeping Vim
+responsive when loading large scripts.
 
-As with indentation, folding is based on blocks.
+When you attempt to close a fold where one did not exist, the current block is
+evaluated and a fold is created.  If the bounds of a block is changed and you
+close the fold again, it will be updated.
+
+Since lines are evaluated the moment you close a fold, the cost of having more
+contextual folds is much lower than what is possible with |fold-expr|.  This
+means that docstrings and collections (lists, tuples, dicts) can be folded in
+addition to blocks.
+
+There are caveats to this:
+
+ - Keystrokes such as |zM| and |zR| will only work on folds you have
+   previously closed.
+
+ - Since these folds are managed by Braceless, the manual fold keystrokes
+   |zf|, |zF|, |zd|, |zD|, and |zE| are overridden to do nothing.  This is to
+   avoid conflicts since Braceless deletes folds to normalize them before
+   updating.
+
+ - When a fold is first created, folds are created for all blocks within the
+   root block.  There may be a noticeable pause on very long blocks, but this
+   should only happen once per root block.  Changes that occur within the
+   block will only update folds for the affected blocks.
+
+ - If you have custom maps for closing folds, you will need to make them
+   recursive, or add them as buffer maps via an autocmd.
 >
-  1. if spam \
-  2.      and eggs:
-  3.   print('ham')
-  4.   more_spam()
+  " Example custom fold close with +fold
+  autocmd FileType python nnoremap <space> :<C-u>call braceless#fold#close(line('.'), 0)<cr>
 <
-Using |+fold| in the |BracelessEnable| command, the fold will be on line 1.
-If you use |+fold-inner|, the fold will be on line 3 (the cursor must be
-somewhere between lines 3 and 4).  The choice as to which is the best is up to
-you.
+See |braceless-patterns| if you want to customize the pattern used for folding
+blocks.
+
+If you wish to stick with the old method of using |fold-expr|, use
+|+fold-slow| instead of |+fold|.  Be warned: this method is terribly slow.
+The time it took to run Braceless's unit tests went from 12 seconds to 3
+seconds using the |fold-manual| method.  In addition to it being slow, it's
+very likely that this method will disappear after being depreciated for a
+while.
 
 
 HIGHLIGHT                                                 *braceless-highlight*
