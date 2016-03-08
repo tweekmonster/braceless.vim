@@ -974,3 +974,48 @@ Expect python (unaltered class with non-function attributes):
       attribute = [
           'abc',
       ]
+
+Given python (multiline collection with appendage):
+===================================================
+  [
+      0,
+      1,
+      ] + [2, 3]
+
+Do (reindent last line):
+========================
+  =G
+
+Expect python (properly indented collection tail):
+==================================================
+  [
+      0,
+      1,
+  ] + [2, 3]
+
+Do (assign collection and reindent):
+====================================
+  iexample = \<esc>=G
+
+Expect python (properly indented collection):
+=============================================
+  example = [
+      0,
+      1,
+  ] + [2, 3]
+
+Given python (function with multiline list default value):
+==========================================================
+  def example(arg=['abc',
+  '123']):
+      pass
+
+Do (reindent):
+==============
+  =G
+
+Expect python (second line indented correctly with list):
+=========================================================
+  def example(arg=['abc',
+                   '123']):
+      pass

@@ -8,7 +8,7 @@ let s:stmt_pattern = 'def '.s:call_pattern
 function! s:get_block_indent(pattern, line, col_head, col_tail, lonely_head_indent, greedy)
   let head = search(a:pattern, 'bW')
   if head != 0 && a:col_head[0] == head
-    let lonely = getline(head) =~ '(\s*$'
+    let lonely = getline(head) =~ '\%((\|{\|\[\)\s*$'
     if lonely && a:line == a:col_tail[0] && getline(a:line) =~ '^\s*\%()\|}\|\]\)\s*$'
       return braceless#indent#space(head, 0)[1]
     elseif a:greedy || lonely
@@ -56,7 +56,7 @@ function! s:indent_handler.collection(line, col_head, col_tail)
     let head = getline(a:col_head[0])
     if head !~ '\%((\|{\|\[\)\s*$'
       return a:col_head[1]
-    elseif getline(a:col_tail[0]) !~ '^\s*\%()\|}\|\]\),\?\s*$'
+    elseif getline(a:col_tail[0]) !~ '^\s*\%()\|}\|\]\),\?\s*'
       return braceless#indent#space(a:col_head[0], 1)[1]
     endif
     return braceless#indent#space(a:col_head[0], 0)[1]
