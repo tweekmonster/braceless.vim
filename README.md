@@ -57,8 +57,11 @@ little slow on large scripts.~~  Folding is now **much** faster!  Read the
 
 ### Indent guide
 
-See what indent level you're operating on with `+highlight`.  You can also enable `colorcolumn`
-so the guide can span the height of the window.
+See what indent level you're operating on with `+highlight`.  You can also
+enable `colorcolumn` so the guide can span the height of the window.  If you
+would like this kind of indent highlighting in other files that don't need
+Braceless, take a look at
+[local-indent.vim](https://github.com/tweekmonster/local-indent.vim)
 
 ![braceless-highlight](https://cloud.githubusercontent.com/assets/111942/13040915/11a1cf74-d380-11e5-8e56-da487f0536f8.gif)
 
