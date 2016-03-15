@@ -1019,3 +1019,115 @@ Expect python (second line indented correctly with list):
   def example(arg=['abc',
                    '123']):
       pass
+
+Given python (underindented backslash line continuation):
+=========================================================
+  if True \
+      and True:
+      pass
+
+Do (reindent):
+==============
+  =G
+
+Expect python (correctly indented backslash line continuation):
+===============================================================
+  if True \
+          and True:
+      pass
+
+Given python (normal block):
+============================
+  if True and True:
+      pass
+
+Do (insert carriage return):
+============================
+  2ea\<cr>
+
+Expect python (correctly indented backslash line continuation):
+===============================================================
+  if True \
+          and True:
+      pass
+
+Do (insert more carriage returns):
+==================================
+  2ea\<cr>\<cr>\<cr>\<cr>
+
+Expect python (correctly indented backslash line continuation):
+===============================================================
+  if True \
+          \
+          \
+          \
+          and True:
+      pass
+
+Given python (incomplete assignment):
+=====================================
+  test =
+
+Do (add carriage return):
+=========================
+  A\<cr>x
+
+Expect python (line continuation for incomplete assigment):
+===========================================================
+  test = \
+      x
+
+Do (insert text then carraige return):
+======================================
+  A\<space>'test'\<cr>x
+
+Expect python (no line continuation after carriage return):
+===========================================================
+  test = 'test'
+  x
+
+Given python (complete assigment):
+==================================
+  test = 'test'
+
+Do (insert carriage return after rhs):
+======================================
+  A\<cr>x
+
+Expect python (no line continuation added after rhs):
+=====================================================
+  test = 'test'
+  x
+
+Do (insert carriage return before rhs):
+=======================================
+  f=a\<cr>
+
+Expect python (new line with continuation added before rhs):
+============================================================
+  test = \
+      'test'
+
+Do (insert carriage return before rhs operator):
+================================================
+  f=i\<cr>
+
+Expect python (new line with continuation added before rhs operator):
+=====================================================================
+  test \
+      = 'test'
+
+Given python (lines with a continuation):
+=========================================
+  test = 'test' \
+      'test'
+
+Do (insert carriage return after second line):
+==============================================
+  GA\<cr>x
+  
+Expect python (no line continuation added to second line):
+==========================================================
+  test = 'test' \
+      'test'
+  x

@@ -29,23 +29,20 @@ endfunction
 
 " Indent
 let s:handlers = {}
-let s:str_skip = "synIDattr(synID(line('.'), col('.'), 1), 'name')"
-                  \." =~? '\\%(Comment\\|Todo\\|String\\|DoctestValue\\|DocTest\\|DocTest2\\)$'"
 let s:collection = ['(\|{\|\[', ')\|}\|\]']
 
 
-function! braceless#indent#collection_bounds()
-  let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW', s:str_skip)
-  if col_head[0] == 0
-    return [[0, 0], [0, 0]]
-  endif
-  let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW', s:str_skip)
-  return [col_head, col_tail]
+function! braceless#indent#add_handler(filetype, handlers)
+  let existing = get(s:handlers, a:filetype, {})
+  for k in keys(a:handlers)
+    let existing[k] = a:handlers[k]
+  endfor
+  let s:handlers[a:filetype] = existing
 endfunction
 
 
-function! braceless#indent#add_handler(filetype, handlers)
-  let s:handlers[a:filetype] = a:handlers
+function! braceless#indent#get_handler(filetype)
+  return get(s:handlers, a:filetype, {})
 endfunction
 
 
@@ -56,7 +53,7 @@ function! braceless#indent#non_block(line, prev)
   if getline(a:line) =~ s:collection[1]
     keepjumps normal! ^
   endif
-  let [col_head, col_tail] = braceless#indent#collection_bounds()
+  let [col_head, col_tail] = braceless#collection_bounds()
   if col_head[0] != a:line && col_head[0] > 0
     if col_head[0] == col_tail[0]
       " All on the same line
@@ -122,9 +119,6 @@ endfunction
 function! s:handle_blocks(line, prev)
   let handler = get(s:handlers, &l:filetype, {})
   let block = braceless#get_block_lines(a:prev, 1)
-  if block[2] == 0
-    return -1
-  endif
 
   try
     if has_key(handler, 'block')
@@ -133,6 +127,10 @@ function! s:handle_blocks(line, prev)
       throw 'cont'
     endif
   catch /cont/
+    if block[2] == 0
+      return -1
+    endif
+
     let prevnb = prevnonblank(block[0] - 1)
     let indent_line = block[0]
     let indent_delta = 1

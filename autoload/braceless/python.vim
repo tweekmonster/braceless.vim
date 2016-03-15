@@ -155,40 +155,58 @@ endfunction
 
 " Handles Python block indentation.  This probably needs a lot more work.
 function! s:indent_handler.block(line, block)
-  " Special cases here.
-  let text = getline(a:line)
-
-  " Get a line above the current block
-  let prev = prevnonblank(a:block[2] - 1)
-  let pos = getpos('.')[1:2]
-
-  " If the current line is at the block head, move to the line above to
-  " determine a parent or sibling block
-  if a:block[2] == a:line
-    call cursor(prev, 0)
-  elseif a:block[3] == a:line && text =~ '):'
-    try
-      return braceless#indent#non_block(a:line, a:line)
-    catch /cont/
-    endtry
-  endif
-
-  let pat = '^\s*'.braceless#get_pattern().start
-  let block_head = braceless#scan_head(pat, 'b')[0]
-  if block_head > a:block[2]
-    " Special case for weirdly indented multi-line blocks
-    let prev_block = braceless#get_block_lines(block_head)
-    let prev_line = prevnonblank(a:line - 1)
-    if prev_line > prev_block[1] || a:line - prev_line > 1
-      throw 'cont'
+  if a:block[2] != 0
+    " Special cases here.
+    if a:line > 1 && a:line > a:block[2] && a:line <= a:block[3] && getline(a:line - 1) =~ '\\$'
+      " Line continuation with backslash on previous line
+      return braceless#indent#space(a:block[2], 2)[1]
     endif
-    return braceless#indent#space(block_head, 1)[1]
-  endif
-  call cursor(pos)
 
-  if match(text, pat) != -1
-    let line_kw = matchstr(text, '\K\+')
-    return s:contextual_indent(a:line, line_kw)
+    let text = getline(a:line)
+
+    " Get a line above the current block
+    let prev = prevnonblank(a:block[2] - 1)
+    let pos = getpos('.')[1:2]
+
+    " If the current line is at the block head, move to the line above to
+    " determine a parent or sibling block
+    if a:block[2] == a:line
+      call cursor(prev, 0)
+    elseif a:block[3] == a:line && text =~ '):'
+      try
+        return braceless#indent#non_block(a:line, a:line)
+      catch /cont/
+      endtry
+    endif
+
+    let pat = '^\s*'.braceless#get_pattern().start
+    let block_head = braceless#scan_head(pat, 'b')[0]
+    if block_head > a:block[2]
+      " Special case for weirdly indented multi-line blocks
+      let prev_block = braceless#get_block_lines(block_head)
+      let prev_line = prevnonblank(a:line - 1)
+      if prev_line > prev_block[1] || a:line - prev_line > 1
+        throw 'cont'
+      endif
+      return braceless#indent#space(block_head, 1)[1]
+    endif
+    call cursor(pos)
+
+    if match(text, pat) != -1
+      let line_kw = matchstr(text, '\K\+')
+      return s:contextual_indent(a:line, line_kw)
+    endif
+  endif
+
+  if a:line >= a:block[2]
+    if getline(a:line - 1) =~ '\\$'
+      if getline(a:line - 2) !~ '\\$'
+        return braceless#indent#space(a:line - 1, 1)[1]
+      endif
+      return indent(a:line - 1)
+    elseif a:line - 2 > a:block[2] && getline(a:line - 2) =~ '\\$'
+      return braceless#indent#space(a:line - 2, 0)[1]
+    endif
   endif
 
   " Fall back to the default block indent
@@ -196,25 +214,7 @@ function! s:indent_handler.block(line, block)
 endfunction
 
 
-" delimitMate_expand_cr = 2 is great for assignments, but not for functions
-" and whatnot.
-function! s:override_delimitMate_cr()
-  if b:braceless.indent_enabled && get(b:, 'delimitMate_enabled', 0) && search(s:call_pattern, 'nbeW') != line('.')
-    return delimitMate#ExpandReturn()
-  endif
-  return "\<cr>"
-endfunction
-
-
-function! s:check_delimitMate()
-  if exists('b:braceless') && delimitMate#Get('expand_cr') == 2
-    silent! imap <unique> <silent> <buffer> <cr> <c-r>=<SID>override_delimitMate_cr()<cr>
-  endif
-endfunction
-
-
 let s:jump = '^\s*\%(def\|class\)\s*\zs\S\_.\{-}:\ze\s*\%(\_$\|#\)'
-
 
 function! <SID>braceless_method_jump(vmode, direction, top)
   if a:vmode ==? 'v'
@@ -274,6 +274,52 @@ function! <SID>braceless_method_jump(vmode, direction, top)
 endfunction
 
 
+function! braceless#python#override_cr()
+  if exists('b:braceless') && b:braceless.indent_enabled
+    let pos = getpos('.')[1:2]
+    let pos_byte = line2byte(pos[0]) + pos[1]
+    let [col_head, col_tail] = braceless#collection_bounds()
+    let col_head_byte = line2byte(col_head[0]) + col_head[1]
+    let col_tail_byte = line2byte(col_tail[0]) + col_tail[1]
+
+    if get(g:, 'braceless_line_continuation', 1)
+      " Auto-insert backslash for line continuation if inside of a block head.
+      " The caveat is that it needs to be a 'complete' block head.
+      let [head, tail] = braceless#head_bounds()
+      let head_byte = line2byte(head[0]) + head[1]
+      let tail_byte = line2byte(tail[0]) + tail[1]
+      let in_head = pos_byte > head_byte && (tail_byte == 0 || pos_byte <= tail_byte)
+      let in_collection = pos_byte >= col_head_byte && (col_tail_byte == 0 || pos_byte <= col_tail_byte)
+      if !in_collection
+        let line_head = strpart(getline(pos[0]), 0, col('.') - 1)
+        let line_tail = strpart(getline(pos[0]), col('.'))
+        let prev_line = getline(pos[0] - 1)
+        if (in_head && line_head !~ '\\\s*$')
+              \ || line_head =~ '\s*\%(=\|or\|and\)\s*$'
+              \ || line_tail !~ '^\s*$'
+              \ || (line_head =~ '^\s*$' && prev_line =~ '\\$')
+          let ret = "\\\<cr>"
+          if line_head !~ '\s$'
+            let ret = ' '.ret
+          endif
+          return ret
+        endif
+      endif
+    endif
+
+    if pos_byte >= col_head_byte && (col_tail_byte == 0 || pos_byte <= col_tail_byte)
+          \ && get(b:, 'delimitMate_enabled', 0) && delimitMate#Get('expand_cr') == 2
+          \ && search(s:call_pattern, 'nbeW') != pos[0]
+      " delimitMate_expand_cr = 2 is great for assignments, but not for functions
+      " and whatnot.
+      return delimitMate#ExpandReturn()
+    endif
+  endif
+
+  return "\<cr>"
+endfunction
+
+
 function! s:map(lhs, direction, top)
   execute 'nnoremap <silent> <buffer>' a:lhs ':<C-u> call <SID>braceless_method_jump("n",' a:direction ',' a:top ')<cr>'
   execute 'onoremap <silent> <buffer>' a:lhs ':<C-u> call <SID>braceless_method_jump("n",' a:direction ',' a:top ')<cr>'
@@ -289,9 +335,7 @@ endfunction
 function! braceless#python#init()
   call braceless#indent#add_handler('python', s:indent_handler)
 
-  augroup braceless_delimitMate
-    autocmd! User delimitMate_map call s:check_delimitMate()
-  augroup END
+  silent! imap <unique> <silent> <buffer> <cr> <c-r>=braceless#python#override_cr()<cr>
 
   call s:map('[m', -1, 1)
   call s:map(']m', 1, 1)

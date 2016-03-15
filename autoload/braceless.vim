@@ -385,6 +385,90 @@ function! braceless#scan_tail(pat, head)
 endfunction
 
 
+" Like searchpos() but skip over certain matches.
+" Arguments: {pattern}, {flags} [, {stopline} [, {skip} [, {timeout}]]]
+" The {skip} argument is different from |searchpair()|.  It must be a function
+" reference that takes {line} and {column} as arguments.
+function! braceless#validsearch(pattern, flags, ...) abort
+  let saved = winsaveview()
+  let found = [0, 0]
+  let last_found = [0, 0]
+
+  if a:0 > 0
+    let skipfunc = a:1
+  else
+    let skipfunc = function('braceless#is_skippable')
+  endif
+
+  if a:0 > 1
+    let stopline = a:2
+  else
+    let stopline = 0
+  endif
+
+  if a:0 > 2
+    let timeout = a:3
+  else
+    let timeout = 0
+  endif
+
+  while found == [0, 0]
+    let found = searchpos(a:pattern, a:flags.'W', stopline, timeout)
+    if found == last_found
+      break
+    endif
+    let last_found = found
+    if found[0] != 0 && skipfunc(found[0], found[1])
+      call cursor(found[0], found[1] + (stridx(a:flags, 'b') != -1 ? -1 : 1))
+      let found = [0, 0]
+      continue
+    endif
+  endwhile
+
+  if stridx(a:flags, 'n') != -1
+    call winrestview(saved)
+  endif
+
+  return found
+endfunction
+
+
+" Gets the bounds of a block head at the current cursor position
+function! braceless#head_bounds(...) abort
+  let pat = a:0 ? a:1 : braceless#get_pattern().start
+  let saved = winsaveview()
+  let head = braceless#scan_head(pat, 'b')
+  let tail = [0, 0]
+  if head[0] != 0
+    let tail = braceless#scan_tail(pat, head)
+  endif
+  call winrestview(saved)
+  return [head, tail]
+endfunction
+
+
+let s:collection = ['(\|{\|\[', ')\|}\|\]']
+" Gets the bounds of collection symbols
+function! braceless#collection_bounds(...) abort
+  let flags_extra = ''
+  let stopline = 0
+  if a:0 >= 1
+    let flags_extra = a:1
+    if a:0 >= 2
+      let stopline = a:2
+    endif
+  endif
+  let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW'.flags_extra,
+        \ 'braceless#is_skippable(line(''.''), col(''.''))', stopline)
+  if col_head[0] == 0
+    return [[0, 0], [0, 0]]
+  endif
+  let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW'.flags_extra,
+        \ 'braceless#is_skippable(line(''.''), col(''.''))', stopline)
+  return [col_head, col_tail]
+endfunction
+
+
 " Select an indent block using ~magic~
 function! braceless#select_block(pattern, ...)
   let ignore_empty = 0

@@ -79,7 +79,7 @@ function! braceless#fold#close(line, recursive) abort
     return
   endif
 
-  let [col_head, col_tail] = braceless#indent#collection_bounds()
+  let [col_head, col_tail] = braceless#collection_bounds()
   if col_head[0] != 0 && col_tail[0] != 0 && col_tail[0] - col_head[0] > 1
     if getline(col_head[0]) =~ '\%(=\|:\)\s*(\|{\|\['
       call s:fold_lines(col_head[0], col_tail[0])
