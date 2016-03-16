@@ -127,6 +127,17 @@ function! s:handle_blocks(line, prev)
       throw 'cont'
     endif
   catch /cont/
+    " XXX: Store previously indented line and level to determine where stray
+    " lines should be indented?  (for autoindent-ing multiple lines in
+    " succession)
+    " Example:
+    " def example():
+    "     if True:
+    "         pass
+    "     do_something()
+    "
+    " If the first line is deleted and the following lines are re-indented,
+    " do_something() should not be indented into the if True: block.
     if block[2] == 0
       return -1
     endif
@@ -176,12 +187,23 @@ function! s:handle_blocks(line, prev)
     elseif a:prev > block[1]
       " There is another line before the end of the previous block, match its
       " indent.
+      let indent_delta = 0
+
       if block[1] == block[3]
         " ...but, get adopted if it's an empty block
         let indent_delta = 1
       else
         let indent_line = a:prev
-        let indent_delta = 0
+        let [parent, _] = braceless#get_parent_block_lines(block[1], 1)
+        if parent[0] != 0 && a:prev > parent[3] && a:prev <= parent[1]
+          " Outside of the current block but inside the parent block
+          let indent_line = parent[2]
+          let indent_delta = 0
+          let [__, parent_indent] = braceless#indent#space(parent[2], 1)
+          if indent(a:prev) > parent_indent
+            let indent_delta = 1
+          endif
+        endif
       endif
     endif
 

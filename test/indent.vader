@@ -1213,3 +1213,37 @@ Expect python (two comment lines fo+r):
 Execute (reset formatoptions):
 ==============================
   setlocal formatoptions-=r
+
+Given python (overindented lines below closed block):
+=====================================================
+  def example():
+      try:
+          example()
+      except Exception:
+          pass
+
+      stop_block_scan()
+
+          overindented_line()
+          overindented_line()
+
+      return True
+
+Do (reindent buffer):
+=====================
+  =G
+
+Expect python (overindented lines corrected):
+=============================================
+  def example():
+      try:
+          example()
+      except Exception:
+          pass
+
+      stop_block_scan()
+
+      overindented_line()
+      overindented_line()
+
+      return True
