@@ -282,7 +282,7 @@ function! braceless#python#override_cr()
     let col_head_byte = line2byte(col_head[0]) + col_head[1]
     let col_tail_byte = line2byte(col_tail[0]) + col_tail[1]
 
-    if get(g:, 'braceless_line_continuation', 1)
+    if get(g:, 'braceless_line_continuation', 1) && !braceless#is_string(line('.'), col('.'))
       " Auto-insert backslash for line continuation if inside of a block head.
       " The caveat is that it needs to be a 'complete' block head.
       let [head, tail] = braceless#head_bounds()
@@ -292,9 +292,13 @@ function! braceless#python#override_cr()
       let in_collection = pos_byte >= col_head_byte && (col_tail_byte == 0 || pos_byte <= col_tail_byte)
       if !in_collection
         let line_head = strpart(getline(pos[0]), 0, col('.') - 1)
-        let line_tail = strpart(getline(pos[0]), col('.'))
+        let line_tail = strpart(getline(pos[0]), col('.') - 1)
         let prev_line = getline(pos[0] - 1)
-        if (in_head && line_head !~ '\\\s*$')
+        if braceless#is_comment(line('.'), col('.')) && line_tail != ''
+          if &l:formatoptions !~ 'r'
+            return "\<cr># "
+          endif
+        elseif (in_head && line_head !~ '\\\s*$')
               \ || line_head =~ '\s*\%(=\|or\|and\)\s*$'
               \ || line_tail !~ '^\s*$'
               \ || (line_head =~ '^\s*$' && prev_line =~ '\\$')

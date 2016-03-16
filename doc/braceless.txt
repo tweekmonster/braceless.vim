@@ -52,6 +52,11 @@ NEWS                                                           *braceless-news*
 
   List of recent additions or changes.
 
+  2016-03-16
+  ---------------------------------------------------------------------------
+
+  * Updated line continuations to exclude strings and include comments.
+
   2016-03-15
   ---------------------------------------------------------------------------
 
@@ -291,8 +296,15 @@ you will get this:
 The caveat is that the block needs to be recognized as a complete block.  In
 Python, that means that the colon is somewhere beyond your cursor.
 
-If this option is set to `0`, Braceless will not add a line continuation character
-(backslash) at the end of lines when you press <enter> within a block head.
+Special exceptions are made for lines that aren't distinguishable blocks.  A
+continuation is added if you press <enter> on a line that ends with `and`,
+`or`, `=`, or if there is text following the cursor.  Additionally, if you
+press <enter> inside of a comment line and there is text following the cursor,
+the next line will start with a comment leader if |formatoptions| does not
+have the `r` option enabled.
+
+If this option is set to `0`, Braceless will not add a line continuation when
+you press <enter>.
 
 Default:
 >

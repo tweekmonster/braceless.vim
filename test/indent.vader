@@ -1131,3 +1131,85 @@ Expect python (no line continuation added to second line):
   test = 'test' \
       'test'
   x
+
+Given python (string):
+======================
+  "test"
+
+Do (insert carraige return before closing quote):
+=================================================
+  $i\<cr>
+
+Expect python (string with without line continuation):
+======================================================
+  "test
+  "
+
+Given python (comment):
+=======================
+  # test comment
+
+Do (insert carriage return at end of line):
+===========================================
+  A\<cr>x
+
+Expect python (newline without new comment leader):
+===================================================
+  # test comment
+  x
+
+Do (insert newline before second word):
+=======================================
+  $bi\<cr>
+
+Expect python (two comment lines):
+==================================
+- There is a space after the first line
+  # test 
+  # comment
+
+Do (insert newline after first word):
+=====================================
+  ea\<cr>
+
+Expect python (two comment lines):
+==================================
+  # test
+  # comment
+
+Execute (add r to formatoptions):
+=================================
+- Below verifies the results with fo+=r
+  setlocal formatoptions+=r
+
+Do (insert carriage return at end of line fo+r):
+================================================
+  A\<cr>x
+
+Expect python (newline without new comment leader fo+r):
+========================================================
+  # test comment
+  # x
+
+Do (insert newline before second word fo+r):
+============================================
+  $bi\<cr>
+
+Expect python (two comment lines fo+r):
+=======================================
+- There is a space after the first line
+  # test 
+  # comment
+
+Do (insert newline after first word fo+r):
+==========================================
+  ea\<cr>
+
+Expect python (two comment lines fo+r):
+=======================================
+  # test
+  # comment
+
+Execute (reset formatoptions):
+==============================
+  setlocal formatoptions-=r
