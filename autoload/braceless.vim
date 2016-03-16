@@ -599,7 +599,7 @@ function! braceless#get_parent_block_lines(...)
   let block = call('braceless#get_block_lines', a:000)
   let [indent_char, indent_len] = braceless#indent#space(block[2], -1)
   call cursor(block[2], 0)
-  let sub = search('^'.indent_char.'{-,'.indent_len.'}\S', 'nbW')
+  let sub = search('^'.indent_char.'\{-,'.indent_len.'}\S', 'nbW')
   let parent = call('braceless#get_block_lines', [sub] + a:000[1:])
   call winrestview(saved)
   return [parent, block]
