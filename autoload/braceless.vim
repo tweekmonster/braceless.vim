@@ -519,6 +519,13 @@ function! braceless#select_block(pattern, ...)
 endfunction
 
 
+" Try to get a variable from the buffer scope, then global.  Optional second
+" argument is the default value.  Return 0 if there's no default.
+function! braceless#get_var(name, ...)
+  return get(b:, a:name, get(g:, a:name, a:0 ? a:1 : 0))
+endfunction
+
+
 " Gets a pattern.  If g:braceless#pattern#<filetype> does not exist, fallback to
 " a built in one, and if that doesn't exist, use basic matching
 function! braceless#get_pattern(...)

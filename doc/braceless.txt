@@ -310,6 +310,16 @@ Default:
 >
   g:braceless_line_continuation = 1
 <
+*g:braceless_cont_block*
+*g:braceless_cont_call*
+
+Override indentation for specific line continuations.  The defaults are based
+on the PEP8 specification.  These can be set as buffer variables (prefixed
+with |b:| instead of |g:|) if you want to change these on a per-buffer basis.
+>
+  g:braceless_cont_block = 2
+  g:braceless_cont_call = 1
+<
 
 INDENTATION                                                  *braceless-indent*
 ==============================================================================

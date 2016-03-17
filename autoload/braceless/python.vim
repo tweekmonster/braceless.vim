@@ -5,6 +5,9 @@ let s:stmt_pattern = 'def '.s:call_pattern
 
 
 " This function exists because the repetition below felt dirty.
+" lonely_head_indent is the indent delta for heads that don't have trailing
+" text after them.  greedy is a boolean that forces non-lonely heads to take
+" the lonely_head_indent level.
 function! s:get_block_indent(pattern, line, col_head, col_tail, lonely_head_indent, greedy)
   let head = search(a:pattern, 'bW')
   if head != 0 && a:col_head[0] == head
@@ -33,19 +36,29 @@ function! s:indent_handler.collection(line, col_head, col_tail)
   call cursor(a:line, 0)
 
   " Special case for if statements using parenthesis to indent
-  let i = s:get_block_indent(s:if_pattern, a:line, a:col_head, a:col_tail, 2, 1)
+  let i = s:get_block_indent(s:if_pattern, a:line, a:col_head, a:col_tail,
+        \ braceless#get_var('braceless_cont_block', 2), 1)
   if i != -1
     return i
   endif
 
-  let i = s:get_block_indent(s:stmt_pattern, a:line, a:col_head, a:col_tail, 2, 0)
+  let i = s:get_block_indent(s:stmt_pattern, a:line, a:col_head, a:col_tail,
+        \ braceless#get_var('braceless_cont_block', 2), 0)
   if i != -1
     return i
   endif
 
   call cursor(pos)
 
-  let i = s:get_block_indent(s:call_pattern, a:line, a:col_head, a:col_tail, 1, 0)
+  let lonely_head_indent = braceless#get_var('braceless_cont_call', 0)
+  let greedy = 1
+  if !lonely_head_indent
+    let lonely_head_indent = 1
+    let greedy = 0
+  endif
+
+  let i = s:get_block_indent(s:call_pattern, a:line, a:col_head, a:col_tail,
+        \ lonely_head_indent, greedy)
   if i != -1
     return i
   endif
@@ -183,7 +196,8 @@ function! s:indent_handler.block(line, block)
     " Special cases here.
     if a:line > 1 && a:line > a:block[2] && a:line <= a:block[3] && getline(a:line - 1) =~ '\\$'
       " Line continuation with backslash on previous line
-      return braceless#indent#space(a:block[2], 2)[1]
+      return braceless#indent#space(a:block[2],
+            \ braceless#get_var('braceless_cont_block', 2))[1]
     endif
 
     let text = getline(a:line)
