@@ -758,6 +758,23 @@ Expect python (correct indent for colleciton tail):
       'b': 2,
   })
 
+Given python (function call with dict argument and added function call):
+========================================================================
+  example({'a': 1,
+           'b': 2,
+           }) + example()
+
+Do (insert carriage return after opening brace and reindent):
+=============================================================
+  f'i\<cr>\<esc>=G
+
+Expect python (correct indent for colleciton tail):
+===================================================
+  example({
+      'a': 1,
+      'b': 2,
+  }) + example()
+
 Given python (double quote doctest):
 ====================================
   def print_bracket():

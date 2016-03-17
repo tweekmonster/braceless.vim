@@ -9,7 +9,7 @@ function! s:get_block_indent(pattern, line, col_head, col_tail, lonely_head_inde
   let head = search(a:pattern, 'bW')
   if head != 0 && a:col_head[0] == head
     let lonely = getline(head) =~ '\%((\|{\|\[\)\s*$'
-    if lonely && a:line == a:col_tail[0] && getline(a:line) =~ '^\s*\%()\|}\|\]\)\+\s*$'
+    if lonely && a:line == a:col_tail[0] && getline(a:line) =~ '^\s*\%()\|}\|\]\)\+\s*'
       return braceless#indent#space(head, 0)[1]
     elseif a:greedy || lonely
       return braceless#indent#space(head, a:lonely_head_indent)[1]
