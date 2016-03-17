@@ -741,6 +741,23 @@ Expect python (long function arguments broken into two lines):
   foo = long_function_name(var_one, var_two, var_three, var_four, var_five,
                            var_six, var_seven, var_eight)
 
+Given python (function call with dict argument):
+================================================
+  example({'a': 1,
+           'b': 2,
+           })
+
+Do (insert carriage return after opening brace and reindent):
+=============================================================
+  f'i\<cr>\<esc>=G
+
+Expect python (correct indent for colleciton tail):
+===================================================
+  example({
+      'a': 1,
+      'b': 2,
+  })
+
 Given python (double quote doctest):
 ====================================
   def print_bracket():
