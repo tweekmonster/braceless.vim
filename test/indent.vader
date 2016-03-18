@@ -1281,3 +1281,45 @@ Expect python (overindented lines corrected):
       overindented_line()
 
       return True
+
+Given python (2 ifs 1 elif):
+============================
+  if True:
+      pass
+      if True:
+          pass
+      elif False:
+          pass
+
+Do (reindent):
+==============
+  =G
+
+Expect python (elif retains indent level):
+==========================================
+- Due to either if statements being potential owners of the elif block, the one
+- immediately matching the elif's indent should win
+  if True:
+      pass
+      if True:
+          pass
+      elif False:
+          pass
+
+Given python (nested blocks with parent content after inner block):
+===================================================================
+  def example():
+      if True:
+          pass
+      pass
+
+Do (reindent):
+==============
+  =G
+
+Given python (parent content after inner block retains indent):
+===============================================================
+  def example():
+      if True:
+          pass
+      pass

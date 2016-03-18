@@ -90,6 +90,22 @@ function! s:scan_parent(name, indent_from, start, stop, exact)
 endfunction
 
 
+function! s:get_parent(name, indent_from, start)
+  let found = s:scan_parent(a:name, a:indent_from, a:start, 0, 1)
+  let saved = winsaveview()
+  call cursor(a:start, 1)
+  let prevhead = braceless#scan_head(braceless#get_pattern().start, 'nb')
+  call winrestview(saved)
+  if getline(prevhead[0]) =~ '^\s*'.a:name
+    return prevehead[0]
+  endif
+
+  if found
+    let block = braceless#get_block_lines(found)
+    if block[1]
+  endif
+endfunction
+
 " Indent based on the current block and its expected sibling
 function! s:contextual_indent(line, kw)
   let found = -1
@@ -109,7 +125,6 @@ function! s:contextual_indent(line, kw)
   endif
 
   let found = s:scan_parent(parent, a:line, a:line, 0, 0)
-
   if found == 0
     " Even though we had a reason to check, we didn't find a match
     throw 'cont'
@@ -122,6 +137,15 @@ function! s:contextual_indent(line, kw)
     else
       " else and finally should be unique in their block set
       let scan = a:kw
+    endif
+
+    let found_exact = s:scan_parent(parent, a:line, a:line, 0, 1)
+    if found_exact
+      let exact_block = braceless#get_block_lines(found_exact, 1)
+      if exact_block[1] == prev
+        " Found a parent that's on the same indent and borders this block
+        let found = found_exact
+      endif
     endif
 
     let other = s:scan_parent(scan, found, prev, found, 1)
@@ -187,6 +211,13 @@ function! s:indent_handler.block(line, block)
       let prev_line = prevnonblank(a:line - 1)
       if prev_line > prev_block[1] || a:line - prev_line > 1
         throw 'cont'
+      endif
+
+      let [parent, _] = braceless#get_parent_block_lines(block_head)
+      if prev_block[3] != prev_block[1]
+            \ && parent[0] != 0 && a:line <= parent[1]
+            \ && braceless#indent#level(parent[2], 1) == braceless#indent#level(a:line, 0)
+        return braceless#indent#space(parent[2], 1)[1]
       endif
       return braceless#indent#space(block_head, 1)[1]
     endif
