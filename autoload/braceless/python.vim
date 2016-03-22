@@ -327,7 +327,14 @@ function! braceless#python#override_cr()
     let col_head_byte = line2byte(col_head[0]) + col_head[1]
     let col_tail_byte = line2byte(col_tail[0]) + col_tail[1]
 
-    if get(g:, 'braceless_line_continuation', 1) && !braceless#is_string(line('.'), col('.'))
+    " Search for ending character since trailing spaces may have the
+    " pythonSpaceError syntax group.
+    normal! $
+    call search('\S', 'cb', line('.'))
+    let is_string = braceless#is_string(line('.'), col('.') - 1)
+    call cursor(pos)
+
+    if !is_string && get(g:, 'braceless_line_continuation', 1)
       " Auto-insert backslash for line continuation if inside of a block head.
       " The caveat is that it needs to be a 'complete' block head.
       let [head, tail] = braceless#head_bounds()

@@ -52,6 +52,14 @@ NEWS                                                           *braceless-news*
 
   List of recent additions or changes.
 
+  2016-03-22
+  ---------------------------------------------------------------------------
+
+  * Fixed line continuations that were being added to docstrings if `and` or
+    `or` was just before the cursor.
+  * The beginning of docstrings makes sure it's inside of a block before
+    aligning itself with it.
+
   2016-03-16
   ---------------------------------------------------------------------------
 
@@ -63,18 +71,6 @@ NEWS                                                           *braceless-news*
   * A backslash is added to the end of lines when you press <enter> if the
     cursor is within a block head to make it easier to maintain PEP8
     indentation.  If you hate this, set |g:braceless_line_continuation| to 0.
-
-  2016-03-07
-  ---------------------------------------------------------------------------
-
-  * The "New Features" section has been added to the docs.  This is where new
-    and exciting things are noted.  Also, new things that might break old
-    things, but you don't care about that because you're adventurous and
-    everyone thinks you smell nice.
-
-  * Switched the folding method to |fold-manual|, but managed by Braceless.
-    This allows for really fast folding compared to |fold-expr|.  But, there's
-    some caveats.  Read more: |braceless-folds|
 
 
 RATIONALE                                                 *braceless-rationale*

@@ -48,6 +48,31 @@ endfunction
 
 function! braceless#indent#non_block(line, prev)
   let handler = get(s:handlers, &l:filetype, {})
+
+  " Try docstrings
+  if braceless#is_string(a:prev) || getline(a:line) =~ '\%("""\|''''''\)'
+    let docstr = braceless#docstring(a:line)
+    try
+      if has_key(handler, 'docstring')
+        return handler.docstring(a:line, docstr)
+      else
+        throw 'cont'
+      endif
+    catch /cont/
+      if docstr[0] != 0
+        if a:line == docstr[0]
+          let pattern = braceless#get_pattern()
+          let block = braceless#get_block_lines(a:line)
+          if docstr[0] > block[3] && docstr[0] <= block[1]
+            return braceless#indent#space(block[2], 1)[1]
+          endif
+        endif
+
+        return braceless#indent#space(prevnonblank(a:line - 1), 0)[1]
+      endif
+    endtry
+  endif
+
   " Try collection pairs
   let pos = getpos('.')
   if getline(a:line) =~ s:collection[1]
@@ -88,29 +113,6 @@ function! braceless#indent#non_block(line, prev)
     return braceless#indent#space(col_head[0], indent_delta)[1]
   endif
   call setpos('.', pos)
-
-  " Try docstrings
-  if braceless#is_string(a:prev) || getline(a:line) =~ '\%("""\|''''''\)'
-    let docstr = braceless#docstring(a:line)
-    try
-      if has_key(handler, 'docstring')
-        return handler.docstring(a:line, docstr)
-      else
-        throw 'cont'
-      endif
-    catch /cont/
-      if docstr[0] != 0
-        if a:line == docstr[0] || a:line == docstr[1]
-          let pattern = braceless#get_pattern()
-          let block = search('^\s*'.pattern.start, 'nbW')
-          return braceless#indent#space(block, 1)[1]
-        endif
-
-        let prev = prevnonblank(a:line - 1)
-        return braceless#indent#space(prev, 0)[1]
-      endif
-    endtry
-  endif
 
   throw 'cont'
 endfunction

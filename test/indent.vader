@@ -1179,6 +1179,58 @@ Expect python (string with without line continuation):
   "test
   "
 
+Given python (docstring):
+=========================
+  """This is a test and or"""
+
+Do (insert carriage return):
+============================
+  $bi\<cr>
+
+Expect python (no carriage return):
+===================================
+  """This is a test and or
+  """
+
+Do (insert carriage return):
+============================
+  $2gea\<cr>
+
+Expect python (no carriage return):
+===================================
+  """This is a test and
+  or"""
+
+Given python (multiline docstring):
+===================================
+  """This is a test and or
+  """
+
+Do (insert carriage return):
+============================
+  $a\<cr>
+
+Expect python (no carriage return):
+===================================
+  """This is a test and or
+
+  """
+
+Given python (multiline docstring with trailing space):
+=======================================================
+  """This is a test and or 
+  """
+
+Do (insert carriage return):
+============================
+  $i\<cr>
+
+Expect python (no carriage return):
+===================================
+  """This is a test and or
+
+  """
+
 Given python (comment):
 =======================
   # test comment
