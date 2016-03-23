@@ -1369,7 +1369,7 @@ Do (reindent):
 ==============
   =G
 
-Given python (parent content after inner block retains indent):
+Expect python (parent content after inner block retains indent):
 ===============================================================
   def example():
       if True:
