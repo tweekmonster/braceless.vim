@@ -283,7 +283,15 @@ function! braceless#scan_head(pat, flag) abort
     return head
   endif
 
-  if braceless#is_skippable(head[0], head[1])
+  if stridx(a:flag, 'b') != -1 && head[0] > 1
+        \ && getline(prevnonblank(head[0] - 1)) =~ '\\\s*$'
+    call cursor(head[0] - 1, 0)
+    let head = braceless#scan_head(a:pat, a:flag)
+    if !empty(saved)
+      call winrestview(saved)
+    endif
+    return head
+  elseif braceless#is_skippable(head[0], head[1])
     " Initial search landed in a string/comment
     let docstring = braceless#docstring(head[0])
     if docstring[0] != 0

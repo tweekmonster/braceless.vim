@@ -205,3 +205,33 @@ Expect python (function body replaced):
            arg3="""def spam():
   print('eggs')"""):
       x
+
+Given python (list comprehension):
+==================================
+
+  def example():
+      test = [x for x in y
+              if x]
+
+      def example():
+          pass
+
+Execute (get block head for line after comprehension):
+======================================================
+  normal! 5G
+  AssertEqual [2, 1], braceless#scan_head(g:py_test_pat, 'b')
+
+Given python (multiline ternary):
+=================================
+
+  def example():
+      test = 1 if True \
+          else 0
+
+      def example():
+          pass
+
+Execute (get block head for line after ternary):
+================================================
+  normal! 5G
+  AssertEqual [2, 1], braceless#scan_head(g:py_test_pat, 'b')
