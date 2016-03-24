@@ -185,9 +185,9 @@ function! s:best_indent(line)
 endfunction
 
 
-let s:syn_string = '\%(String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\)$'
+let s:syn_string = '\%(String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\|BytesEscape\)$'
 let s:syn_comment = '\%(Comment\|Todo\)$'
-let s:syn_skippable = '\%(Comment\|Todo\|String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\)$'
+let s:syn_skippable = '\%(Comment\|Todo\|String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\|BytesEscape\)$'
 
 function! braceless#is_string(line, ...)
   return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~? s:syn_string
@@ -396,22 +396,22 @@ endfunction
 " Like searchpos() but skip over certain matches.
 " Arguments: {pattern}, {flags} [, {stopline} [, {skip} [, {timeout}]]]
 " The {skip} argument is different from |searchpair()|.  It must be a function
-" reference that takes {line} and {column} as arguments.
+" string that takes {line} and {column} as arguments.
 function! braceless#validsearch(pattern, flags, ...) abort
   let saved = winsaveview()
   let found = [0, 0]
   let last_found = [0, 0]
 
   if a:0 > 0
-    let skipfunc = a:1
+    let stopline = a:1
   else
-    let skipfunc = function('braceless#is_skippable')
+    let stopline = 0
   endif
 
   if a:0 > 1
-    let stopline = a:2
+    let skipfunc = a:2
   else
-    let stopline = 0
+    let skipfunc = 'braceless#is_skippable'
   endif
 
   if a:0 > 2
@@ -420,14 +420,21 @@ function! braceless#validsearch(pattern, flags, ...) abort
     let timeout = 0
   endif
 
+  let c_delta = 0
+  if stridx(a:flags, 'b') != -1 && stridx(a:flags, 'c') != -1
+    let c_delta = -1
+  elseif stridx(a:flags, 'b') == -1 && stridx(a:flags, 'c')
+    let c_delta = 1
+  endif
+
   while found == [0, 0]
     let found = searchpos(a:pattern, a:flags.'W', stopline, timeout)
     if found == last_found
       break
     endif
     let last_found = found
-    if found[0] != 0 && skipfunc(found[0], found[1])
-      call cursor(found[0], found[1] + (stridx(a:flags, 'b') != -1 ? -1 : 1))
+    if found[0] != 0 && call(skipfunc, found)
+      call cursor(found[0], found[1] + c_delta)
       let found = [0, 0]
       continue
     endif
