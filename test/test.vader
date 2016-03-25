@@ -35,6 +35,7 @@ Include: motion.vader
 Include: selection.vader
 Include: terrible.vader
 Include: fold.vader
+Include: string_splitting.vader
 Include: delimitMate.vader
 
 Execute (cleanup):

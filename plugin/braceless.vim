@@ -176,6 +176,9 @@ endfunction
 
 
 function! s:init()
+  if !exists('g:braceless_format')
+    let g:braceless_format = {}
+  endif
 
   " Text object
   vnoremap <silent> <Plug>(braceless-i-v) :<C-u>call braceless#motion#select('i', '')<cr>

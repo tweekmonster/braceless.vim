@@ -185,24 +185,51 @@ function! s:best_indent(line)
 endfunction
 
 
-let s:syn_string = '\%(String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\|BytesEscape\)$'
+let s:syn_string = '\%(String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\|'
+                 \.'BytesEscape\|BytesContent\|StrFormat\|StrFormatting\)$'
 let s:syn_comment = '\%(Comment\|Todo\)$'
-let s:syn_skippable = '\%(Comment\|Todo\|String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\|BytesEscape\)$'
+let s:syn_skippable = '\%(Comment\|Todo\|String\|Heredoc\|DoctestValue\|DocTest\|'
+                    \.'DocTest2\|BytesEscape\|BytesContent\|StrFormat\|StrFormatting\)$'
+
+" s:syn_check({pattern}, {line} [, {col} [, {either} ]])
+" Check if the syntax at a position matches with a pattern.
+" If {col} is given, check that specific column, otherwise check both sides
+" of the line for a match.
+" If {either} is given, either side matching will return 1
+function! s:syn_check(pattern, line, ...)
+  let text = getline(a:line)
+  if a:0 && a:1 > 0
+    let c1 = a:1
+  else
+    let c1 = max([1, match(text, '\S\s*$') + 1])
+  endif
+
+  let t1 = synIDattr(synID(a:line, c1, 1), 'name') =~? a:pattern
+  let t2 = 1
+  if !a:0 || a:1 < 1
+    let c2 = max([1, match(text, '\S')])
+    let t2 = c2 == c1 || synIDattr(synID(a:line, c2, 1), 'name') =~? a:pattern
+  endif
+
+  if a:0 > 1
+    return t1 || t2
+  endif
+  return t1 && t2
+endfunction
+
 
 function! braceless#is_string(line, ...)
-  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~? s:syn_string
-        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~? s:syn_string)
+  return call('s:syn_check', [s:syn_string, a:line] + a:000)
 endfunction
 
 
 function! braceless#is_comment(line, ...)
-  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~? s:syn_comment
-        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~? s:syn_comment)
+  return call('s:syn_check', [s:syn_comment, a:line] + a:000)
 endfunction
 
+
 function! braceless#is_skippable(line, ...)
-  return synIDattr(synID(a:line, a:0 ? a:1 : col([a:line, '$']) - 1, 1), 'name') =~? s:syn_skippable
-        \ && (a:0 || synIDattr(synID(a:line, 1, 1), 'name') =~? s:syn_skippable)
+  return call('s:syn_check', [s:syn_skippable, a:line] + a:000)
 endfunction
 
 
@@ -226,6 +253,10 @@ function! braceless#docstring(line, ...)
   let l = nextnonblank(a:line)
   let doc_head = 0
   let doc_tail = 0
+
+  if getline(a:line) =~ s:docstr.'.*'.s:docstr && braceless#is_string(a:line, -1, 1)
+    return [l, l]
+  endif
 
   let bounds = a:0 ? a:1 : [1, line('$')]
 
@@ -481,6 +512,26 @@ function! braceless#collection_bounds(...) abort
   let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW'.flags_extra,
         \ 'braceless#is_skippable(line(''.''), col(''.''))', stopline)
   return [col_head, col_tail]
+endfunction
+
+
+" Get docstring bounds for the cursor position.
+function! braceless#docstring_bounds()
+  let saved = winsaveview()
+  call braceless#validsearch('\%(\_^\|\_.\)'.s:docstr, 'b')
+  " If the first line is hit, validsearch() won't return anything, but the
+  " cursor moved there.
+  let d_head = getpos('.')[1:2]
+  if !(d_head[0] == 1 && d_head[1] == 1) && match(getline(d_head[0]), '^'.s:docstr, d_head[1]) == -1
+    let d_head[0] += 1
+    let d_head[1] = 1
+  else
+    let d_head[1] += 1
+  endif
+  let d_tail = braceless#validsearch(s:docstr.'\zs\%(\_.\|\_$\)', 'n')
+  call winrestview(saved)
+
+  return [d_head, d_tail]
 endfunction
 
 

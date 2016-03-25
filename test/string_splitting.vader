@@ -1,0 +1,395 @@
+# This is repetative for the different string delimiters.  The "double quoted"
+# section should be used as the "template" for other delimiters.  The
+# whitespace in the strings are significant.
+
+Before:
+=======
+  BracelessEnable +indent +fold +highlight
+
+# Quick verification that docstrings are left alone
+
+Given python (double quote docstring):
+======================================
+  x="""a  string """
+
+Do (insert carriage return before docstring):
+=============================================
+  f"i\<cr>
+
+Expect python (no splits in docstring):
+=======================================
+  x= \
+      """a  string """
+
+Do (insert carriage return at end of docstring):
+================================================
+  $a\<cr>x
+
+Expect python (no splits in docstring):
+=======================================
+  x="""a  string """
+  x
+
+Do (insert carriage return in space):
+=====================================
+  f\<space>a\<cr>
+
+Expect python (double quote docstring on two lines without whitespace on second line):
+======================================================================================
+  x="""a 
+  string """
+
+Given python (single quote docstring):
+======================================
+  x='''a  string '''
+
+Do (insert carriage return before docstring):
+=============================================
+  f'i\<cr>
+
+Expect python (no splits in docstring):
+=======================================
+  x= \
+      '''a  string '''
+
+Do (insert carriage return at end of docstring):
+================================================
+  $a\<cr>x
+
+Expect python (no splits in docstring):
+=======================================
+  x='''a  string '''
+  x
+
+Do (insert carriage return in space):
+=====================================
+  f\<space>a\<cr>
+
+Expect python (single quote docstring on two lines without whitespace on second line):
+======================================================================================
+  x='''a 
+  string '''
+
+# BEGIN double quoted
+
+Given python (double quoted string):
+====================================
+  x="a  string "
+
+Do (insert carriage return at beginning):
+===================================
+  f=a\<cr>
+
+Expect python (double quoted string unsplit):
+=============================================
+  x= \
+      "a  string "
+
+Do (insert carriage return at end):
+===================================
+  $a\<cr>x
+
+Expect python (double quoted string unsplit):
+=============================================
+  x="a  string "
+  x
+
+Do (insert carriage return just after first quote):
+===================================================
+  f"a\<cr>
+
+Expect python (double quoted string split into two):
+====================================================
+  x="" \
+      "a  string "
+
+Do (insert carriage return just before last quote):
+===================================================
+  $i\<cr>
+
+Expect python (double quoted string split in two):
+==================================================
+  x="a  string " \
+      ""
+
+Do (insert carriage return before the last space and insert):
+=============================================================
+  2f"gea\<cr>x
+
+Expect python (double quoted string split in two, with whitespace preserved):
+=============================================================================
+  x="a  string" \
+      "x "
+
+Do (insert carriage return inside double quoted string before whitespace and insert):
+=====================================================================================
+  f\<space>i\<cr>x
+
+Expect python (double quoted string split into two, with whitespace preserved):
+===============================================================================
+  x="a" \
+      "x  string "
+
+Do (insert carriage return inside double quoted string between spaces and insert):
+==================================================================================
+  f\<space>a\<cr>x
+
+Expect python (double quoted string split into two between whitespace):
+=======================================================================
+  x="a " \
+      "x string "
+
+Do (insert carriage return between a word):
+===========================================
+  fii\<cr>
+
+Expect python (double quoted string split in two):
+==================================================
+  x="a  str" \
+      "ing "
+
+# END double quoted
+
+# BEGIN single quoted
+
+Given python (single quoted string):
+====================================
+  x='a  string '
+
+Do (insert carriage return at beginning):
+===================================
+  f=a\<cr>
+
+Expect python (single quoted string unsplit):
+=============================================
+  x= \
+      'a  string '
+
+Do (insert carriage return at end):
+===================================
+  $a\<cr>x
+
+Expect python (single quoted string unsplit):
+=============================================
+  x='a  string '
+  x
+
+Do (insert carriage return just after first quote):
+===================================================
+  f'a\<cr>
+
+Expect python (single quoted string split into two):
+====================================================
+  x='' \
+      'a  string '
+
+Do (insert carriage return just before last quote):
+===================================================
+  $i\<cr>
+
+Expect python (single quoted string split in two):
+==================================================
+  x='a  string ' \
+      ''
+
+Do (insert carriage return before the last space and insert):
+=============================================================
+  2f'gea\<cr>x
+
+Expect python (single quoted string split in two, with whitespace preserved):
+=============================================================================
+  x='a  string' \
+      'x '
+
+Do (insert carriage return inside single quoted string before whitespace and insert):
+=====================================================================================
+  f\<space>i\<cr>x
+
+Expect python (single quoted string split into two, with whitespace preserved):
+===============================================================================
+  x='a' \
+      'x  string '
+
+Do (insert carriage return inside single quoted string between spaces and insert):
+==================================================================================
+  f\<space>a\<cr>x
+
+Expect python (single quoted string split into two between whitespace):
+=======================================================================
+  x='a ' \
+      'x string '
+
+Do (insert carriage return between a word):
+===========================================
+  fii\<cr>
+
+Expect python (single quoted string split in two):
+==================================================
+  x='a  str' \
+      'ing '
+
+# END single quoted
+
+# BEGIN raw double quoted
+# Testing of the 'r' prefix should be sufficient.  The default syntax
+# highlighting does not include the 'b' prefix as part of the highlighting and
+# will not work for testing.  It is very recommended to install
+# hdima/python-syntax
+
+Given python (raw double quoted string):
+========================================
+  x=r"a  string "
+
+Do (insert carriage return at beginning):
+=========================================
+  f=a\<cr>
+
+Expect python (raw double quoted string unsplit):
+=================================================
+  x= \
+      r"a  string "
+
+Do (insert carriage return at end):
+===================================
+  $a\<cr>x
+
+Expect python (raw double quoted string unsplit):
+=================================================
+  x=r"a  string "
+  x
+
+Do (insert carriage return just after first quote):
+===================================================
+  f"a\<cr>
+
+Expect python (raw double quoted string split into two):
+========================================================
+  x=r"" \
+      r"a  string "
+
+Do (insert carriage return just before last quote):
+===================================================
+  $i\<cr>
+
+Expect python (raw double quoted string split in two):
+======================================================
+  x=r"a  string " \
+      r""
+
+Do (insert carriage return before the last space and insert):
+=============================================================
+  2f"gea\<cr>x
+
+Expect python (raw double quoted string split in two, with whitespace preserved):
+=================================================================================
+  x=r"a  string" \
+      r"x "
+
+Do (insert carriage return inside raw double quoted string before whitespace and insert):
+=========================================================================================
+  f\<space>i\<cr>x
+
+Expect python (raw double quoted string split into two, with whitespace preserved):
+===================================================================================
+  x=r"a" \
+      r"x  string "
+
+Do (insert carriage return inside raw double quoted string between spaces and insert):
+======================================================================================
+  f\<space>a\<cr>x
+
+Expect python (raw double quoted string split into two between whitespace):
+===========================================================================
+  x=r"a " \
+      r"x string "
+
+Do (insert carriage return between a word):
+===========================================
+  fii\<cr>
+
+Expect python (raw double quoted string split in two):
+======================================================
+  x=r"a  str" \
+      r"ing "
+
+# END raw double quoted
+
+# BEGIN raw single quoted
+
+Given python (raw single quoted string):
+========================================
+  x=r'a  string '
+
+Do (insert carriage return at beginning):
+=========================================
+  f=a\<cr>
+
+Expect python (raw single quoted string unsplit):
+=================================================
+  x= \
+      r'a  string '
+
+Do (insert carriage return at end):
+===================================
+  $a\<cr>x
+
+Expect python (raw single quoted string unsplit):
+=================================================
+  x=r'a  string '
+  x
+
+Do (insert carriage return just after first quote):
+===================================================
+  f'a\<cr>
+
+Expect python (raw single quoted string split into two):
+========================================================
+  x=r'' \
+      r'a  string '
+
+Do (insert carriage return just before last quote):
+===================================================
+  $i\<cr>
+
+Expect python (raw single quoted string split in two):
+======================================================
+  x=r'a  string ' \
+      r''
+
+Do (insert carriage return before the last space and insert):
+=============================================================
+  2f'gea\<cr>x
+
+Expect python (raw single quoted string split in two, with whitespace preserved):
+=================================================================================
+  x=r'a  string' \
+      r'x '
+
+Do (insert carriage return inside raw single quoted string before whitespace and insert):
+=========================================================================================
+  f\<space>i\<cr>x
+
+Expect python (raw single quoted string split into two, with whitespace preserved):
+===================================================================================
+  x=r'a' \
+      r'x  string '
+
+Do (insert carriage return inside raw single quoted string between spaces and insert):
+======================================================================================
+  f\<space>a\<cr>x
+
+Expect python (raw single quoted string split into two between whitespace):
+===========================================================================
+  x=r'a ' \
+      r'x string '
+
+Do (insert carriage return between a word):
+===========================================
+  fii\<cr>
+
+Expect python (raw single quoted string split in two):
+======================================================
+  x=r'a  str' \
+      r'ing '
+
+# END raw single quoted

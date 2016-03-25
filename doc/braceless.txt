@@ -22,6 +22,7 @@ CONTENTS                                                   *braceless-contents*
   Motions                   |braceless-motions|
   Configuration             |braceless-config|
   Features
+    Formatting              |braceless-format|
     Indentation             |braceless-indent|
     Folding                 |braceless-folds|
     Highlight               |braceless-highlight|
@@ -52,6 +53,13 @@ NEWS                                                           *braceless-news*
 
   List of recent additions or changes.
 
+  2016-03-25
+  ---------------------------------------------------------------------------
+
+  * A string can be broken into two strings by pressing <cr> within it.
+  * Joining lines with |J| will combine and clean lines, as well as combine
+    strings.  See |braceless-format| for more info.
+
   2016-03-22
   ---------------------------------------------------------------------------
 
@@ -64,13 +72,6 @@ NEWS                                                           *braceless-news*
   ---------------------------------------------------------------------------
 
   * Updated line continuations to exclude strings and include comments.
-
-  2016-03-15
-  ---------------------------------------------------------------------------
-
-  * A backslash is added to the end of lines when you press <enter> if the
-    cursor is within a block head to make it easier to maintain PEP8
-    indentation.  If you hate this, set |g:braceless_line_continuation| to 0.
 
 
 RATIONALE                                                 *braceless-rationale*
@@ -316,6 +317,54 @@ with |b:| instead of |g:|) if you want to change these on a per-buffer basis.
   g:braceless_cont_block = 2
   g:braceless_cont_call = 1
 <
+*g:braceless_format*
+
+This is a dictionary that disables certain aspects of formatting.  If you are
+not a filthy heathen, you will never need to look at this option.  But, if you
+have to be a filthy heathen due to project requirements, you may still be able
+to get some utility from formatting assistance.  Every key mentioned below is
+enabled by default.  Omitting a key from this dictionary, or setting it to `1`
+is effectively enabling the option.  Setting them to `0` is how you disable
+the format option.  Formatting will not affect characters that are inside
+strings.
+
+ - `clean_collections`: Remove whitespace immediately inside collections.
+   Example: [ 'a', 'b' ] -> ['a', 'b']
+ - `clean_commas`: Adds whitespace after commas.
+ - `clean_slices`: Removes whitespace between operators in slices.
+ - `clean_dot`: Removes whitespace around periods.
+ - `join_string`: Joins contiguous strings together.
+ - `clean_whitespace`: Removes excess whitespace.
+
+Example Usage:
+>
+  g:braceless_format = {
+    \   'join_string': 0,
+    \   'clean_string': 0,
+    \ }
+<
+
+
+FORMATTING                                                   *braceless-format*
+==============================================================================
+
+Note: Formatting is a work in progress!
+
+Braceless provides some assistance for refactoring lines of code.  This
+assistance is highly opinionated by default.
+
+When you press <cr> inside of a string, it will be broken into two separate
+strings.  The type of string is preserved when breaking the string.  For
+example, if you have a bytes string `b'abc'` and press enter just before the
+`c` in insert mode, it will be split into two strings `b'ab'` and `b'c'` on
+two separate lines.  A line continuation character will be added if necessary.
+To disable this, look at |g:braceless_line_continuation|.
+
+When you join lines with |J|, Braceless will also perform some cleanup.  This
+includes: removing line continuations, normalizing excess whitespace,
+combining strings, and removing whitespace immediately inside collections.  To
+configure this, look at |g:braceless_format|.
+
 
 INDENTATION                                                  *braceless-indent*
 ==============================================================================

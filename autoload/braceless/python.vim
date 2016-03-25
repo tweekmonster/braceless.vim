@@ -264,6 +264,13 @@ function! s:indent_handler.block(line, block)
   throw 'cont'
 endfunction
 
+function! s:indent_handler.docstring(line, docstr)
+  let prev = prevnonblank(a:line - 1)
+  if a:line == a:docstr[0] && getline(prev) =~ '\\$'
+    return braceless#indent#space(prev, 1)[1]
+  endif
+  throw 'cont'
+endfunction
 
 let s:jump = '^\s*\%(def\|class\)\s*\zs\S\_.\{-}:\ze\s*\%(\_$\|#\)'
 
@@ -325,51 +332,121 @@ function! <SID>braceless_method_jump(vmode, direction, top)
 endfunction
 
 
-function! braceless#python#override_cr()
+" Get the delimiters for a string at a cursor location.
+function! braceless#python#string_delimiter(line, col)
+  let saved = winsaveview()
+  call cursor(a:line, a:col)
+  " Not sure if this is genius or stupid.
+  let delim_pos = braceless#validsearch('\_.', 'ncb', a:line)
+  call winrestview(saved)
+
+  if !delim_pos[0]
+    return ['', '']
+  endif
+
+  let delim_text = getline(delim_pos[0])
+  if strpart(delim_text, delim_pos[1], 3) =~ '"""\|'''''''
+    return ['', '']
+  endif
+
+  let d1 = matchstr(strpart(delim_text, delim_pos[1]), '^\%([rub]*\)\?[''"]')
+  let d2 = strpart(d1, len(d1) - 1)
+
+  return [d1, d2]
+endfunction
+
+
+" Override the <enter> key.  Can be called with an optional argument that
+" tells it to not add fancy things.
+function! braceless#python#override_cr(...) abort
   if exists('b:braceless') && b:braceless.indent_enabled
     let pos = getpos('.')[1:2]
     let pos_byte = line2byte(pos[0]) + pos[1]
     let [col_head, col_tail] = braceless#collection_bounds()
-    let col_head_byte = line2byte(col_head[0]) + col_head[1]
-    let col_tail_byte = line2byte(col_tail[0]) + col_tail[1]
-
-    " Search for ending character since trailing spaces may have the
-    " pythonSpaceError syntax group.
-    normal! $
-    call search('\S', 'cb', line('.'))
-    let is_string = braceless#is_string(line('.'), col('.') - 1)
-    call cursor(pos)
-
-    if !is_string && get(g:, 'braceless_line_continuation', 1)
-      " Auto-insert backslash for line continuation if inside of a block head.
-      " The caveat is that it needs to be a 'complete' block head.
-      let [head, tail] = braceless#head_bounds()
-      let head_byte = line2byte(head[0]) + head[1]
-      let tail_byte = line2byte(tail[0]) + tail[1]
-      let in_head = pos_byte > head_byte && (tail_byte == 0 || pos_byte <= tail_byte)
+    if col_head[0] != 0
+      let col_head_byte = line2byte(col_head[0]) + col_head[1]
+      let col_tail_byte = line2byte(col_tail[0]) + col_tail[1]
       let in_collection = pos_byte >= col_head_byte && (col_tail_byte == 0 || pos_byte <= col_tail_byte)
-      if !in_collection
-        let line_head = strpart(getline(pos[0]), 0, col('.') - 1)
-        let line_tail = strpart(getline(pos[0]), col('.') - 1)
-        let prev_line = getline(pos[0] - 1)
-        if braceless#is_comment(line('.'), col('.')) && line_tail != ''
-          if &l:formatoptions !~ 'r'
-            return "\<cr># "
+    else
+      let in_collection = 0
+    endif
+
+    if get(g:, 'braceless_line_continuation', 1)
+      let docstr = braceless#docstring_bounds()
+      if docstr[0][0]
+        let docstr_head_byte = line2byte(docstr[0][0]) + docstr[0][1]
+        let docstr_tail_byte = line2byte(docstr[1][0]) + docstr[1][1]
+        let in_docstr = pos_byte >= docstr_head_byte && (docstr_tail_byte == 0 || pos_byte < docstr_tail_byte)
+      else
+        let in_docstr = 0
+      endif
+
+      " In insert mode, the cursor is 1 character to the right when
+      " considering where a string has ended.
+      let at_end = pos[1] == col('$') - (mode() == 'i' ? 0 : 1)
+
+      " Search for ending character since trailing spaces may have the
+      " pythonSpaceError syntax group.
+      if at_end
+        normal! $
+        call search('\S', 'cb', line('.'))
+      endif
+
+      let is_string = braceless#is_string(line('.'), col('.') - 1)
+      call cursor(pos)
+
+      if is_string
+        let [d1, d2] = braceless#python#string_delimiter(line('.'), col('.'))
+      else
+        let d1 = ''
+        let d2 = ''
+      endif
+
+      if !in_docstr && is_string && !at_end
+            \ && d1 != '' && d2 != ''
+            \ && get(g:, 'braceless_string_break', 1)
+        let ret = d2
+        if !in_collection
+          let ret .= ' \'
+        endif
+        let whitespace = matchstr(getline(pos[0]), '^\s\+', pos[1] - 1)
+        if whitespace != '' && !a:0
+          " Move the cursor back before the whitespace
+          let whitespace .= printf("\<c-o>%dh", len(whitespace))
+        endif
+        return ret."\<cr>".d1.whitespace
+      endif
+
+      if !is_string
+        " Auto-insert backslash for line continuation if inside of a block head.
+        " The caveat is that it needs to be a 'complete' block head.
+        let [head, tail] = braceless#head_bounds()
+        let head_byte = line2byte(head[0]) + head[1]
+        let tail_byte = line2byte(tail[0]) + tail[1]
+        let in_head = pos_byte > head_byte && (tail_byte == 0 || pos_byte <= tail_byte)
+        if !in_collection
+          let line_head = strpart(getline(pos[0]), 0, col('.') - 1)
+          let line_tail = strpart(getline(pos[0]), col('.') - 1)
+          let prev_line = getline(pos[0] - 1)
+          if braceless#is_comment(line('.'), col('.')) && line_tail != ''
+            if &l:formatoptions !~ 'r'
+              return "\<cr># "
+            endif
+          elseif (in_head && line_head !~ '\\\s*$')
+                \ || line_head =~ '\s*\%(=\|or\|and\)\s*$'
+                \ || line_tail !~ '^\s*$'
+                \ || (line_head =~ '^\s*$' && prev_line =~ '\\$')
+            let ret = "\\\<cr>"
+            if line_head !~ '\s$'
+              let ret = ' '.ret
+            endif
+            return ret
           endif
-        elseif (in_head && line_head !~ '\\\s*$')
-              \ || line_head =~ '\s*\%(=\|or\|and\)\s*$'
-              \ || line_tail !~ '^\s*$'
-              \ || (line_head =~ '^\s*$' && prev_line =~ '\\$')
-          let ret = "\\\<cr>"
-          if line_head !~ '\s$'
-            let ret = ' '.ret
-          endif
-          return ret
         endif
       endif
     endif
 
-    if pos_byte >= col_head_byte && (col_tail_byte == 0 || pos_byte <= col_tail_byte)
+    if in_collection
           \ && get(b:, 'delimitMate_enabled', 0) && delimitMate#Get('expand_cr') == 2
           \ && search(s:call_pattern, 'nbeW') != pos[0]
       " delimitMate_expand_cr = 2 is great for assignments, but not for functions
@@ -398,6 +475,11 @@ function! braceless#python#init()
   call braceless#indent#add_handler('python', s:indent_handler)
 
   silent! imap <unique> <silent> <buffer> <cr> <c-r>=braceless#python#override_cr()<cr>
+
+  if get(g:braceless_format, 'join', 1)
+    silent! nnoremap <unique> <silent> <buffer> J :<c-u>call braceless#python#format#join_lines('n')<cr>
+    silent! vnoremap <unique> <silent> <buffer> J :<c-u>call braceless#python#format#join_lines('v')<cr>
+  endif
 
   call s:map('[m', -1, 1)
   call s:map(']m', 1, 1)
