@@ -194,10 +194,16 @@ endfunction
 function! s:indent_handler.block(line, block)
   if a:block[2] != 0
     " Special cases here.
-    if a:line > 1 && a:line > a:block[2] && a:line <= a:block[3] && getline(a:line - 1) =~ '\\$'
+    let text = getline(prevnonblank(a:line - 1))
+    if a:line > 1 && a:line > a:block[2] && a:line <= a:block[3] && text =~ '\\$'
       " Line continuation with backslash on previous line
       return braceless#indent#space(a:block[2],
             \ braceless#get_var('braceless_cont_block', 2))[1]
+    endif
+
+    let prev = prevnonblank(a:line - 1)
+    if text =~ '\\\s*$'
+      return braceless#indent#space(prev, 1)[1]
     endif
 
     let text = getline(a:line)
