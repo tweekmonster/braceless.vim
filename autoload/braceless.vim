@@ -377,7 +377,7 @@ function! braceless#scan_head(pat, flag) abort
       if cursor_delta
         call cursor(head[0] + cursor_delta, 0)
       endif
-      let head = searchpos(a:pat, a:flag.'W')
+      let head = braceless#validsearch(a:pat, a:flag.'W')
       let shit_guard -= 1
       continue
     endif
@@ -413,7 +413,7 @@ function! braceless#scan_tail(pat, head)
         " characters from the start of the head.
         let tail_byte = line2byte(tail[0]) + tail[1]
         let tail_tail = '\\_\.\\{-'.(tail_byte - head_byte).',}'
-        let tail = searchpos(substitute(a:pat, '\\_\.\\{-}', tail_tail, ''), 'nceW')
+        let tail = braceless#validsearch(substitute(a:pat, '\\_\.\\{-}', tail_tail, ''), 'nceW')
         continue
       endif
       break
