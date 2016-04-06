@@ -434,7 +434,7 @@ function! braceless#python#override_cr(...) abort
             endif
           elseif (in_head && line_head !~ '\\\s*$')
                 \ || line_head =~ '\s*\%(=\|or\|and\)\s*$'
-                \ || line_tail !~ '^\s*$'
+                \ || (line_head !~ '^\s*$' && line_tail !~ '^\s*$')
                 \ || (line_head =~ '^\s*$' && prev_line =~ '\\$')
             let ret = "\\\<cr>"
             if line_head !~ '\s$'

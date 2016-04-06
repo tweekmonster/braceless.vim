@@ -1098,6 +1098,28 @@ Expect python (correctly indented backslash line continuation):
           and True:
       pass
 
+Do (insert carriage return before block):
+=========================================
+  i\<cr>\<cr>
+
+Expect python (no line continuation return before block):
+=========================================================
+
+
+  if True and True:
+      pass
+
+Do (insert carriage return at the end of block head):
+=====================================================
+  A\<cr>\<cr>x
+
+Expect python (no line continuation after block head):
+======================================================
+  if True and True:
+
+      x
+      pass
+
 Given python (incomplete assignment):
 =====================================
   test =
@@ -1119,6 +1141,16 @@ Expect python (no line continuation after carriage return):
 ===========================================================
   test = 'test'
   x
+
+Do (insert carriage return at the beginning of the line):
+=========================================================
+  i\<cr>\<cr>
+
+Expect python (no carriage return before statement):
+====================================================
+
+
+  test =
 
 Given python (complete assigment):
 ==================================
