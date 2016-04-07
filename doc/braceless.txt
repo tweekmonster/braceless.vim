@@ -313,6 +313,8 @@ Default:
 Override indentation for specific line continuations.  The defaults are based
 on the PEP8 specification.  These can be set as buffer variables (prefixed
 with |b:| instead of |g:|) if you want to change these on a per-buffer basis.
+
+Default:
 >
   g:braceless_cont_block = 2
   g:braceless_cont_call = 1
@@ -343,7 +345,17 @@ Example Usage:
     \   'clean_string': 0,
     \ }
 <
+*g:braceless_auto_dedent_gap*
 
+Sets the number of blank lines between the current line and a block's bottom
+that will cause the cursor to drop one indent level.  It is worth pointing out
+here that |i_CTRL-I| and |i_CTRL-D| are very useful for adjusting the indent in
+insert mode.
+
+Default:
+>
+  let g:braceless_auto_dedent_gap = 1
+<
 
 FORMATTING                                                   *braceless-format*
 ==============================================================================

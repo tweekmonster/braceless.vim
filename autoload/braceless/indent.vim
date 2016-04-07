@@ -147,8 +147,9 @@ function! s:handle_blocks(line, prev)
     let prevnb = prevnonblank(block[0] - 1)
     let indent_line = block[0]
     let indent_delta = 1
+    let dedent_gap = braceless#get_var('braceless_auto_dedent_gap', 1)
 
-    if a:line - a:prev > 2 && a:line > block[1]
+    if a:line - a:prev > dedent_gap + 1 && a:line > block[1]
       " Gone past the point of caring.  Use the user's indent.
       return -1
     elseif a:line >= block[0] && a:line <= block[3]
@@ -183,7 +184,7 @@ function! s:handle_blocks(line, prev)
           let indent_delta = 1
         endif
       endif
-    elseif a:line > block[1] && a:line - a:prev > 1
+    elseif dedent_gap > 0 && a:line > block[1] && a:line - a:prev > dedent_gap
       " Current line is past the end of a block, drop back one level
       let indent_delta = 0
     elseif a:prev > block[1]
