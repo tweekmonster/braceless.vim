@@ -474,7 +474,7 @@ endfunction
 function! braceless#python#init()
   call braceless#indent#add_handler('python', s:indent_handler)
 
-  silent! imap <unique> <silent> <buffer> <cr> <c-r>=braceless#python#override_cr()<cr>
+  silent! inoremap <unique> <silent> <buffer> <cr> <c-r>=braceless#python#override_cr()<cr>
 
   if get(g:braceless_format, 'join', 1)
     silent! nnoremap <unique> <silent> <buffer> J :<c-u>call braceless#python#format#join_lines('n')<cr>
