@@ -388,7 +388,6 @@ function! braceless#python#override_cr(...) abort
       " Search for ending character since trailing spaces may have the
       " pythonSpaceError syntax group.
       if at_end
-        normal! $
         call search('\S', 'cb', line('.'))
       endif
 
@@ -474,7 +473,7 @@ endfunction
 function! braceless#python#init()
   call braceless#indent#add_handler('python', s:indent_handler)
 
-  silent! inoremap <unique> <silent> <buffer> <cr> <c-r>=braceless#python#override_cr()<cr>
+  silent! inoremap <expr><unique><silent><buffer> <cr> braceless#python#override_cr()
 
   if get(g:braceless_format, 'join', 1)
     silent! nnoremap <unique> <silent> <buffer> J :<c-u>call braceless#python#format#join_lines('n')<cr>

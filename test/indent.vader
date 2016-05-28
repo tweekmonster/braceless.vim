@@ -908,8 +908,11 @@ Expect python (empty function on first column):
 
 Do (insert two functions on first column between class functions and reindent to end of file):
 ==============================================================================================
+- There is a whitespace after the first example():
+- There appears to be a bug with Vader that's causing \<cr> to eat the previous char.
+- The <cr> mapping was changed to a <expr> map.  So, it's not possible for it to alter the existing text.
   3Go
-  \<cr>\<bs>def example():
+  \<cr>\<bs>def example(): 
   \<cr>\<bs>def example():
   \<esc>4G=G
 
@@ -919,7 +922,7 @@ Expect python (both empty blocks adopting the subsequent blocks):
       def example():
           pass
 
-  def example():
+  def example(): 
       def example():
 
           def example():
