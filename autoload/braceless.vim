@@ -481,7 +481,7 @@ endfunction
 
 " Gets the bounds of a block head at the current cursor position
 function! braceless#head_bounds(...) abort
-  let pat = a:0 ? a:1 : braceless#get_pattern().start
+  let pat = a:0 ? a:1 : '^\s*'.braceless#get_pattern().start
   let saved = winsaveview()
   let head = braceless#scan_head(pat, 'b')
   let tail = [0, 0]
