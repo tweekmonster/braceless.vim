@@ -1,4 +1,4 @@
-*braceless.txt*    *braceless*                                        Feb 12, 2016
+*braceless.txt*    *braceless*                                        May 28, 2016
 
 
             _____ _____ _____ _____ _____ __    _____ _____ _____
@@ -53,6 +53,11 @@ NEWS                                                           *braceless-news*
 
   List of recent additions or changes.
 
+  2016-05-28
+  ---------------------------------------------------------------------------
+
+  * Fixed line continuations after ternary expressions.
+
   2016-03-25
   ---------------------------------------------------------------------------
 
@@ -67,11 +72,6 @@ NEWS                                                           *braceless-news*
     `or` was just before the cursor.
   * The beginning of docstrings makes sure it's inside of a block before
     aligning itself with it.
-
-  2016-03-16
-  ---------------------------------------------------------------------------
-
-  * Updated line continuations to exclude strings and include comments.
 
 
 RATIONALE                                                 *braceless-rationale*
