@@ -69,7 +69,7 @@ endfunction
 
 
 function! braceless#fold#close(line, recursive) abort
-  let s:fold_err = 'No found found'
+  let s:fold_err = 'No fold found'
   let cmd_count = v:count1
 
   let docstring = braceless#docstring(a:line)
@@ -173,7 +173,7 @@ function! braceless#fold#enable_fast()
 endfunction
 
 
-" Below is the slower, depreciated method for folding
+" Below is the slower, deprecated method for folding
 
 " Build a cache of the entire buffer.  This decreases the time impact of
 " loading a large file by preemptively scanning all foldable blocks.
