@@ -354,9 +354,10 @@ function! braceless#scan_head(pat, flag) abort
 
     " Only scan up to 5 lines before the head.
     let stopline = max([1, head[0] - 5])
-    let col_start = searchpair('(\|{\|\[', '', ')\|}\|\]', 'ncbW',
-                              \'braceless#is_skippable(line(''.''), col(''.''))', stopline)
-    if col_start != 0
+    let col_start = searchpairpos('(\|{\|\[', '', ')\|}\|\]', 'ncbW',
+          \ 'braceless#is_skippable(line(''.''), col(''.''))', stopline)
+
+    if col_start[0] != 0 && col_start != head
       " If searchpair() matches, it means that the head is within a pair
       " (even if it's unclosed).
       if cursor_delta
