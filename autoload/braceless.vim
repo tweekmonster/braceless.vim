@@ -11,7 +11,7 @@ let s:pattern_cache = {}
 " Default patterns
 let s:pattern_default = {}
 let s:pattern_default.python = {
-      \   'start': '\<\%(if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\>\_.\{-}:\ze\s*\%(\_$\|#\)',
+      \   'start': '\<\%(async\|if\|def\|for\|try\|elif\|else\|with\|class\|while\|except\|finally\)\>\_.\{-}:\ze\s*\%(\_$\|#\)',
       \   'decorator': '\_^\s*@\%(\k\|\.\)\+\%((\_.\{-})\)\?\_$',
       \   'end': '\S',
       \}
