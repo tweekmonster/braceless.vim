@@ -50,7 +50,7 @@ function! s:clean_slice(match) abort
   if s:clean_skip()
     return a:match
   endif
-  let ret = substitute(a:match, '\s*\([+\-\*/%]\)\s*', '\1', 'g')
+  let ret = substitute(a:match, '\s\{2,}\([+\-\*/%]\)\s\{2,}', '\1', 'g')
   if col('.') < s:col_track
     let s:col_track -= len(a:match) - len(ret)
   endif
