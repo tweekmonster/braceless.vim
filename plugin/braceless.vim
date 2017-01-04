@@ -54,15 +54,18 @@ function! s:enable(...)
 
   if !empty(g:braceless#key#jump_prev)
     execute 'map <buffer> ['.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-n)'
-    execute 'map <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-n-indent)'
     execute 'vmap <buffer> ['.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-v)'
-    execute 'vmap <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-v-indent)'
   endif
 
   if !empty(g:braceless#key#jump_next)
     execute 'map <buffer> ]'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-n)'
-    execute 'map <buffer> g'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-n-indent)'
     execute 'vmap <buffer> ]'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-v)'
+  endif
+
+  if get(g:, 'braceless_enable_jump_indent', 0)
+    execute 'map <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-n-indent)'
+    execute 'vmap <buffer> g'.g:braceless#key#jump_prev.' <Plug>(braceless-jump-prev-v-indent)'
+    execute 'map <buffer> g'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-n-indent)'
     execute 'vmap <buffer> g'.g:braceless#key#jump_next.' <Plug>(braceless-jump-next-v-indent)'
   endif
 

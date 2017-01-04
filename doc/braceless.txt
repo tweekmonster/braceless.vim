@@ -225,11 +225,8 @@ Default:
 *g:braceless_jump_prev_key*
 *g:braceless_jump_next_key*
 
-By default, these let you move around using the |[[| and |]]| keys.  The following
-sequences are also mapped with these keys:
-
-  *g]*    Move forward to an increased indent level
-  *g[*    Move backward to a decreased indent level
+By default you can move between block heads using the |[[| and |]]| motions.
+This fits better with VIM's traditional notion of a |section|.
 
 Default:
 >
@@ -239,6 +236,15 @@ Default:
 
 *g:braceless_segment_prev_key*
 *g:braceless_segment_next_key*
+
+You can enable motions for moving between block indent levels using
+|g[| and |g]|.
+
+Default:
+>
+  let g:braceless_enable_jump_indent = 1
+<
+*g:braceless_enable_jump_indent*
 
 Keys used for moving between segments.
 
