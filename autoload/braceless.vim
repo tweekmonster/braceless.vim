@@ -188,7 +188,7 @@ endfunction
 let s:syn_string = '\%(String\|Heredoc\|DoctestValue\|DocTest\|DocTest2\|'
                  \.'BytesEscape\|BytesContent\|StrFormat\|StrFormatting\)$'
 let s:syn_comment = '\%(Comment\|Todo\)$'
-let s:syn_skippable = '\%(Comment\|Todo\|String\|Heredoc\|DoctestValue\|DocTest\|'
+let s:syn_skippable = '\%(Comment\|Todo\|String\|Escape\|Heredoc\|DoctestValue\|DocTest\|'
                     \.'DocTest2\|BytesEscape\|BytesContent\|StrFormat\|StrFormatting\)$'
 
 " s:syn_check({pattern}, {line} [, {col} [, {either} ]])
