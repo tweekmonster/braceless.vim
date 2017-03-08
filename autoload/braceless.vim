@@ -258,9 +258,10 @@ function! braceless#docstring(line, ...)
     return [l, l]
   endif
 
+  let guard = 20
   let bounds = a:0 ? a:1 : [1, line('$')]
 
-  while l >= bounds[0]
+  while l >= bounds[0] && guard
     if getline(l) =~ s:docstr && braceless#is_string(nextnonblank(l + 1))
           \ && !braceless#is_string(prevnonblank(l - 1))
       let doc_head = l
@@ -269,14 +270,16 @@ function! braceless#docstring(line, ...)
       break
     endif
     let l = prevnonblank(l - 1)
+    let guard -= 1
   endwhile
 
   if doc_head == 0
     return [0, 0]
   endif
 
+  let guard = 20
   let l = prevnonblank(a:line)
-  while l <= bounds[1]
+  while l <= bounds[1] && guard
     if getline(l) =~ s:docstr && braceless#is_string(prevnonblank(l - 1))
           \ && !braceless#is_string(nextnonblank(l + 1))
       let doc_tail = l
@@ -285,6 +288,7 @@ function! braceless#docstring(line, ...)
       break
     endif
     let l = nextnonblank(l + 1)
+    let guard -= 1
   endwhile
 
   return [doc_head, doc_tail]
@@ -293,7 +297,12 @@ endfunction
 
 " Scans for a block head by making sure the cursor doesn't land in a string or
 " comment that looks like a block head.  This moves the cursor.
-function! braceless#scan_head(pat, flag) abort
+function! braceless#scan_head(pat, flag, ...) abort
+  let recursion = a:0 ? a:1 : 0
+  if recursion >= 10
+    return 0
+  endif
+
   let saved = {}
   if stridx(a:flag, 'n') != -1
     let saved = winsaveview()
@@ -317,7 +326,7 @@ function! braceless#scan_head(pat, flag) abort
   if stridx(a:flag, 'b') != -1 && head[0] > 1
         \ && getline(prevnonblank(head[0] - 1)) =~ '\\\s*$'
     call cursor(head[0] - 1, 0)
-    let head = braceless#scan_head(a:pat, a:flag)
+    let head = braceless#scan_head(a:pat, a:flag, recursion + 1)
     if !empty(saved)
       call winrestview(saved)
     endif
@@ -340,7 +349,7 @@ function! braceless#scan_head(pat, flag) abort
       else
         call cursor(c_line, 0)
       endif
-      let head = braceless#scan_head(a:pat, a:flag)
+      let head = braceless#scan_head(a:pat, a:flag, recursion + 1)
       if !empty(saved)
         call winrestview(saved)
       endif
@@ -363,7 +372,7 @@ function! braceless#scan_head(pat, flag) abort
       if cursor_delta
         call cursor(head[0] + cursor_delta, 0)
       endif
-      let head = braceless#scan_head(a:pat, a:flag)
+      let head = braceless#scan_head(a:pat, a:flag, recursion + 1)
       if !empty(saved)
         call winrestview(saved)
       endif
@@ -494,6 +503,19 @@ function! braceless#head_bounds(...) abort
 endfunction
 
 
+" Create or decrement a scan guard.  An argument sets the limit.  No argument
+" decrements and returns 0 if the limit is exhausted.
+function! s:scan_guard(...) abort
+  if a:0
+    let s:_scan_guard = a:1
+    return
+  endif
+
+  let s:_scan_guard -= 1
+  return s:_scan_guard >= 0
+endfunction
+
+
 let s:collection = ['(\|{\|\[', ')\|}\|\]']
 " Gets the bounds of collection symbols
 function! braceless#collection_bounds(...) abort
@@ -505,13 +527,16 @@ function! braceless#collection_bounds(...) abort
       let stopline = a:2
     endif
   endif
+
+  call s:scan_guard(10)
+
   let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW'.flags_extra,
-        \ 'braceless#is_skippable(line(''.''), col(''.''))', stopline)
-  if col_head[0] == 0
+        \ 's:scan_guard() && braceless#is_skippable(line(''.''), col(''.''))', stopline)
+  if col_head[0] == 0 || !s:_scan_guard
     return [[0, 0], [0, 0]]
   endif
   let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW'.flags_extra,
-        \ 'braceless#is_skippable(line(''.''), col(''.''))', stopline)
+        \ 's:scan_guard() && braceless#is_skippable(line(''.''), col(''.''))', stopline)
   return [col_head, col_tail]
 endfunction
 
