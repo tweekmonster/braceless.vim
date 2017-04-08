@@ -436,10 +436,13 @@ There are caveats to this:
  - Keystrokes such as |zM| and |zR| will only work on folds you have
    previously closed.
 
- - Since these folds are managed by Braceless, the manual fold keystrokes
+ - Since these folds are managed by Braceless, the default manual fold maps
    |zf|, |zF|, |zd|, |zD|, and |zE| are overridden to do nothing.  This is to
    avoid conflicts since Braceless deletes folds to normalize them before
    updating.
+
+   Note: This will not overwrite existing maps.  This plugin will assume that
+   your maps are non-conflicting.
 
  - When a fold is first created, folds are created for all blocks within the
    root block.  There may be a noticeable pause on very long blocks, but this

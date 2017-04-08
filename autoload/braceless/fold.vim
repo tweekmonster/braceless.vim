@@ -165,9 +165,10 @@ endfunction
 function! braceless#fold#enable_fast()
   setlocal foldmethod=manual
   for keystroke in ['zf', 'zF', 'zd', 'zD', 'zE']
-    execute 'nnoremap <silent> <buffer> '.keystroke.' :<C-u>call <sid>no_manual_msg()<cr>'
+    if empty(maparg(keystroke, 'n'))
+      execute 'nnoremap <silent> <buffer> '.keystroke.' :<C-u>call <sid>no_manual_msg()<cr>'
+    endif
   endfor
-  vnoremap <silent> zf :<C-u>call <sid>no_manual_msg()<cr>
   nnoremap <silent> <buffer> zc :<C-u>call braceless#fold#close(line('.'), 0)<cr>
   nnoremap <silent> <buffer> zC :<C-u>call braceless#fold#close(line('.'), 1)<cr>
 endfunction
