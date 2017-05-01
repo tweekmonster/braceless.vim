@@ -531,12 +531,12 @@ function! braceless#collection_bounds(...) abort
   call s:scan_guard(10)
 
   let col_head = searchpairpos(s:collection[0], '', s:collection[1], 'nbW'.flags_extra,
-        \ 's:scan_guard() && braceless#is_skippable(line(''.''), col(''.''))', stopline)
-  if col_head[0] == 0 || !s:_scan_guard
+        \ 's:scan_guard() ? braceless#is_skippable(line(''.''), col(''.'')) : s:dummy', stopline)
+  if col_head[0] == 0 || s:_scan_guard < 0
     return [[0, 0], [0, 0]]
   endif
   let col_tail = searchpairpos(s:collection[0], '', s:collection[1], 'ncW'.flags_extra,
-        \ 's:scan_guard() && braceless#is_skippable(line(''.''), col(''.''))', stopline)
+        \ 's:scan_guard() ? braceless#is_skippable(line(''.''), col(''.'')) : s:dummy', stopline)
   return [col_head, col_tail]
 endfunction
 
