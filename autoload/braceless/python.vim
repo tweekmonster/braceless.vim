@@ -272,7 +272,7 @@ function! s:indent_handler.docstring(line, docstr)
   throw 'cont'
 endfunction
 
-let s:jump = '^\s*\%(def\|class\)\s*\zs\S\_.\{-}:\ze\s*\%(\_$\|#\)'
+let s:jump = '^\s*\%(\<def\>\|\<class\>\)\s*\zs\S\_.\{-}:\ze\s*\%(\_$\|#\)'
 
 function! <SID>braceless_method_jump(vmode, direction, top)
   if a:vmode ==? 'v'
