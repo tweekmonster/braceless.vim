@@ -440,3 +440,33 @@ Expect python (innermost function replaced):
   def example():
       x
       return example
+
+
+Given python (async function):
+==========================================
+  async def example():
+      async with foo:
+          a
+          b
+          c
+      return 42
+
+Do (replace inner block):
+================================
+  3GciPx
+
+Expect python (innermost function replaced):
+============================================
+  async def example():
+      async with foo:
+          x
+      return 42
+
+Do (replace inner block):
+================================
+  ciPx
+
+Expect python (innermost function replaced):
+============================================
+  async def example():
+      x
